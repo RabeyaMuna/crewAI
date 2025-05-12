@@ -2050,7 +2050,9 @@ def test_agent_from_repository(mock_get_agent):
 
 @pytest.fixture
 def mock_get_auth_token():
-    with patch("crewai.cli.command.get_auth_token", return_value="test_token"):
+    with patch(
+        "crewai.cli.authentication.token.get_auth_token", return_value="test_token"
+    ):
         yield
 
 
