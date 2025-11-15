@@ -318,11 +318,11 @@ class TestTraceListenerSetup:
                 Crew(agents=[agent], tasks=[task], verbose=True)
                 assert mock_listener_setup.call_count >= 1
 
+    @pytest.mark.vcr(filter_headers=["authorization"])
     def test_trace_listener_setup_correctly_for_flow(self):
         """Test that trace listener is set up correctly when enabled"""
 
         with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
-
             class FlowExample(Flow):
                 @start()
                 def start(self):
@@ -433,7 +433,15 @@ class TestTraceListenerSetup:
         """Test first-time user trace collection logic with timeout behavior"""
 
         with (
-            patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "false"}),
+            patch.dict(
+                os.environ,
+                {
+                    "CREWAI_TRACING_ENABLED": "false",
+                    "CREWAI_DISABLE_TELEMETRY": "false",
+                    "CREWAI_DISABLE_TRACKING": "false",
+                    "OTEL_SDK_DISABLED": "false",
+                },
+            ),
             patch(
                 "crewai.events.listeners.tracing.utils._is_test_environment",
                 return_value=False,
@@ -494,7 +502,15 @@ class TestTraceListenerSetup:
         """Test first-time user trace collection when user accepts viewing traces"""
 
         with (
-            patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "false"}),
+            patch.dict(
+                os.environ,
+                {
+                    "CREWAI_TRACING_ENABLED": "false",
+                    "CREWAI_DISABLE_TELEMETRY": "false",
+                    "CREWAI_DISABLE_TRACKING": "false",
+                    "OTEL_SDK_DISABLED": "false",
+                },
+            ),
             patch(
                 "crewai.events.listeners.tracing.utils._is_test_environment",
                 return_value=False,
@@ -567,7 +583,15 @@ class TestTraceListenerSetup:
     def test_first_time_user_trace_consolidation_logic(self, mock_plus_api_calls):
         """Test the consolidation logic for first-time users vs regular tracing"""
         with (
-            patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "false"}),
+            patch.dict(
+                os.environ,
+                {
+                    "CREWAI_TRACING_ENABLED": "false",
+                    "CREWAI_DISABLE_TELEMETRY": "false",
+                    "CREWAI_DISABLE_TRACKING": "false",
+                    "OTEL_SDK_DISABLED": "false",
+                },
+            ),
             patch(
                 "crewai.events.listeners.tracing.utils._is_test_environment",
                 return_value=False,
