@@ -2,6 +2,7 @@ from io import StringIO
 from typing import Any, Dict
 
 from pydantic import Field, PrivateAttr
+
 from crewai.llm import LLM
 from crewai.task import Task
 from crewai.telemetry.telemetry import Telemetry
@@ -23,16 +24,16 @@ from crewai.utilities.events.llm_events import (
     LLMStreamChunkEvent,
 )
 from crewai.utilities.events.llm_guardrail_events import (
-    LLMGuardrailStartedEvent,
     LLMGuardrailCompletedEvent,
+    LLMGuardrailStartedEvent,
 )
 from crewai.utilities.events.utils.console_formatter import ConsoleFormatter
 
 from .agent_events import (
     AgentExecutionCompletedEvent,
     AgentExecutionStartedEvent,
-    AgentLogsStartedEvent,
     AgentLogsExecutionEvent,
+    AgentLogsStartedEvent,
     LiteAgentExecutionCompletedEvent,
     LiteAgentExecutionErrorEvent,
     LiteAgentExecutionStartedEvent,
@@ -57,19 +58,18 @@ from .flow_events import (
     MethodExecutionFinishedEvent,
     MethodExecutionStartedEvent,
 )
+from .listeners.memory_listener import MemoryListener
+from .reasoning_events import (
+    AgentReasoningCompletedEvent,
+    AgentReasoningFailedEvent,
+    AgentReasoningStartedEvent,
+)
 from .task_events import TaskCompletedEvent, TaskFailedEvent, TaskStartedEvent
 from .tool_usage_events import (
     ToolUsageErrorEvent,
     ToolUsageFinishedEvent,
     ToolUsageStartedEvent,
 )
-from .reasoning_events import (
-    AgentReasoningStartedEvent,
-    AgentReasoningCompletedEvent,
-    AgentReasoningFailedEvent,
-)
-
-from .listeners.memory_listener import MemoryListener
 
 
 class EventListener(BaseEventListener):
@@ -378,11 +378,12 @@ class EventListener(BaseEventListener):
 
         @crewai_event_bus.on(LLMGuardrailStartedEvent)
         def on_llm_guardrail_started(source, event: LLMGuardrailStartedEvent):
-            guardrail_name = (
+            guardrail_str = (
                 event.guardrail[:50] + "..."
-                if len(event.guardrail) > 50
+                if isinstance(event.guardrail, str) and len(event.guardrail) > 50
                 else event.guardrail
             )
+            guardrail_name = str(guardrail_str)
 
             self.formatter.handle_guardrail_started(guardrail_name, event.retry_count)
 
