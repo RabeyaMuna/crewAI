@@ -265,6 +265,7 @@ class TestAgentEvaluator:
         assert events["failed"].error == "Forced evaluation failure"
 
         results = agent_evaluator.get_evaluation_results()
+        assert agent.role in results, f"Expected agent role '{agent.role}' in results: {results.keys()}"
         (result,) = results[agent.role]
         assert isinstance(result, AgentEvaluationResult)
 
