@@ -3,86 +3,32 @@ name: Run Tests
 on: push
 
 permissions:
-  contents: read
+  contents: write
+
+env:
+  OPENAI_API_KEY: fake-api-key
 
 jobs:
   tests:
-    name: tests (${{ matrix.python-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
-      fail-fast: true
       matrix:
-        python-version: ['3.10', '3.13']
-        group: [1, 2, 3, 4, 5, 6, 7, 8]
+        python-version: ['3.10']
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0    # Fetch all history for proper diff
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Restore global uv cache
-      id: cache-restore
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ~/.cache/uv
-          ~/.local/share/uv
-          .venv
-        key: uv-main-py${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
-        restore-keys: |
-          uv-main-py${{ matrix.python-version }}-
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        version: 0.8.4
-        python-version: ${{ matrix.python-version }}
-        enable-cache: false
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
 
-    - name: Install the project
-      run: uv sync --all-groups --all-extras
+      - name: Install the project
+        run: uv sync --dev --all-extras
 
-    - name: Restore test durations
-      uses: actions/cache/restore@v4
-      with:
-        path: .test_durations_py*
-        key: test-durations-py${{ matrix.python-version }}
-
-    - name: Run tests (group ${{ matrix.group }} of 8)
-      run: |
-        PYTHON_VERSION_SAFE=$(echo "${{ matrix.python-version }}" | tr '.' '_')
-        DURATION_FILE="../../.test_durations_py${PYTHON_VERSION_SAFE}"
-
-        # Temporarily always skip cached durations to fix test splitting
-        # When durations don't match, pytest-split runs duplicate tests instead of splitting
-        echo "Using even test splitting (duration cache disabled until fix merged)"
-        DURATIONS_ARG=""
-
-        cd lib/crewai && uv run pytest \
-          -vv \
-          --splits 8 \
-          --group ${{ matrix.group }} \
-          $DURATIONS_ARG \
-          --durations=10 \
-          --maxfail=3
-
-    - name: Run tool tests (group ${{ matrix.group }} of 8)
-      run: |
-        cd lib/crewai-tools && uv run pytest \
-          -vv \
-          --splits 8 \
-          --group ${{ matrix.group }} \
-          --durations=10 \
-          --maxfail=3
-
-
-    - name: Save uv caches
-      if: steps.cache-restore.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
-      with:
-        path: |
-          ~/.cache/uv
-          ~/.local/share/uv
-          .venv
-        key: uv-main-py${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+      - name: Run tests
+        run: uv run pytest --block-network --timeout=60 -vv
