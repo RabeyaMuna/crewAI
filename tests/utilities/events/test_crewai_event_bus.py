@@ -42,6 +42,6 @@ def test_event_bus_error_handling(capfd):
     event = TestEvent(type="test_event")
     crewai_event_bus.emit("source_object", event)
 
-    out, err = capfd.readouterr()
+    out, _err = capfd.readouterr()
     assert "Simulated handler failure" in out
     assert "Handler 'broken_handler' failed" in out

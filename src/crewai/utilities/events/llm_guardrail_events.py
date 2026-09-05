@@ -1,4 +1,5 @@
-from typing import Any, Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any
 
 from crewai.utilities.events.base_events import BaseEvent
 
@@ -12,20 +13,18 @@ class LLMGuardrailStartedEvent(BaseEvent):
     """
 
     type: str = "llm_guardrail_started"
-    guardrail: Union[str, Callable]
+    guardrail: str | Callable
     retry_count: int
 
     def __init__(self, **data):
         from inspect import getsource
 
-        from crewai.tasks.llm_guardrail import LLMGuardrail
         from crewai.tasks.hallucination_guardrail import HallucinationGuardrail
+        from crewai.tasks.llm_guardrail import LLMGuardrail
 
         super().__init__(**data)
 
-        if isinstance(self.guardrail, LLMGuardrail) or isinstance(
-            self.guardrail, HallucinationGuardrail
-        ):
+        if isinstance(self.guardrail, (LLMGuardrail, HallucinationGuardrail)):
             self.guardrail = self.guardrail.description.strip()
         elif isinstance(self.guardrail, Callable):
             self.guardrail = getsource(self.guardrail).strip()
@@ -37,5 +36,5 @@ class LLMGuardrailCompletedEvent(BaseEvent):
     type: str = "llm_guardrail_completed"
     success: bool
     result: Any
-    error: Optional[str] = None
+    error: str | None = None
     retry_count: int

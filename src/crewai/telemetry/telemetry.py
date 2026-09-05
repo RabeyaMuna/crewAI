@@ -5,11 +5,12 @@ import json
 import logging
 import os
 import platform
+import threading
 import warnings
+from collections.abc import Callable
 from contextlib import contextmanager
 from importlib.metadata import version
-from typing import TYPE_CHECKING, Any, Callable, Optional
-import threading
+from typing import TYPE_CHECKING, Any
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
@@ -72,14 +73,14 @@ class Telemetry:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
-                    cls._instance = super(Telemetry, cls).__new__(cls)
+                    cls._instance = super().__new__(cls)
                     cls._instance._initialized = False
         return cls._instance
 
     def __init__(self) -> None:
-        if hasattr(self, '_initialized') and self._initialized:
+        if hasattr(self, "_initialized") and self._initialized:
             return
-        
+
         self.ready: bool = False
         self.trace_set: bool = False
         self._initialized: bool = True
@@ -528,7 +529,7 @@ class Telemetry:
         self._safe_telemetry_operation(operation)
 
     def tool_usage_error(
-        self, llm: Any, agent: Any = None, tool_name: Optional[str] = None
+        self, llm: Any, agent: Any = None, tool_name: str | None = None
     ):
         """Records when a tool usage results in an error.
 
@@ -647,7 +648,7 @@ class Telemetry:
 
         self._safe_telemetry_operation(operation)
 
-    def start_deployment_span(self, uuid: Optional[str] = None):
+    def start_deployment_span(self, uuid: str | None = None):
         """Records the start of a deployment process.
 
         Args:
@@ -675,7 +676,7 @@ class Telemetry:
 
         self._safe_telemetry_operation(operation)
 
-    def get_crew_logs_span(self, uuid: Optional[str], log_type: str = "deployment"):
+    def get_crew_logs_span(self, uuid: str | None, log_type: str = "deployment"):
         """Records the retrieval of crew logs.
 
         Args:
@@ -694,7 +695,7 @@ class Telemetry:
 
         self._safe_telemetry_operation(operation)
 
-    def remove_crew_span(self, uuid: Optional[str] = None):
+    def remove_crew_span(self, uuid: str | None = None):
         """Records the removal of a crew.
 
         Args:

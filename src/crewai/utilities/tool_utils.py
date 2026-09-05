@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from crewai.agents.parser import AgentAction
 from crewai.security import Fingerprint
@@ -10,15 +10,15 @@ from crewai.utilities.i18n import I18N
 
 def execute_tool_and_check_finality(
     agent_action: AgentAction,
-    tools: List[CrewStructuredTool],
+    tools: list[CrewStructuredTool],
     i18n: I18N,
-    agent_key: Optional[str] = None,
-    agent_role: Optional[str] = None,
-    tools_handler: Optional[Any] = None,
-    task: Optional[Any] = None,
-    agent: Optional[Any] = None,
-    function_calling_llm: Optional[Any] = None,
-    fingerprint_context: Optional[Dict[str, str]] = None,
+    agent_key: str | None = None,
+    agent_role: str | None = None,
+    tools_handler: Any | None = None,
+    task: Any | None = None,
+    agent: Any | None = None,
+    function_calling_llm: Any | None = None,
+    fingerprint_context: dict[str, str] | None = None,
 ) -> ToolResult:
     """Execute a tool and check if the result should be treated as a final answer.
 
@@ -41,16 +41,17 @@ def execute_tool_and_check_finality(
 
         if agent_key and agent_role and agent:
             fingerprint_context = fingerprint_context or {}
-            if agent:
-                if hasattr(agent, "set_fingerprint") and callable(
-                    agent.set_fingerprint
-                ):
-                    if isinstance(fingerprint_context, dict):
-                        try:
-                            fingerprint_obj = Fingerprint.from_dict(fingerprint_context)
-                            agent.set_fingerprint(fingerprint_obj)
-                        except Exception as e:
-                            raise ValueError(f"Failed to set fingerprint: {e}")
+            if (
+                agent
+                and hasattr(agent, "set_fingerprint")
+                and callable(agent.set_fingerprint)
+                and isinstance(fingerprint_context, dict)
+            ):
+                try:
+                    fingerprint_obj = Fingerprint.from_dict(fingerprint_context)
+                    agent.set_fingerprint(fingerprint_obj)
+                except Exception as e:
+                    raise ValueError(f"Failed to set fingerprint: {e}")
 
         # Create tool usage instance
         tool_usage = ToolUsage(
@@ -86,5 +87,5 @@ def execute_tool_and_check_finality(
         )
         return ToolResult(tool_result, False)
 
-    except Exception as e:
-        raise e
+    except Exception:
+        raise

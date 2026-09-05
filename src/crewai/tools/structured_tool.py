@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-
 import inspect
 import textwrap
-from typing import Any, Callable, Optional, Union, get_type_hints
+from collections.abc import Callable
+from typing import Any, get_type_hints
 
 from pydantic import BaseModel, Field, create_model
 
@@ -55,10 +55,10 @@ class CrewStructuredTool:
     def from_function(
         cls,
         func: Callable,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
         return_direct: bool = False,
-        args_schema: Optional[type[BaseModel]] = None,
+        args_schema: type[BaseModel] | None = None,
         infer_schema: bool = True,
         **kwargs: Any,
     ) -> CrewStructuredTool:
@@ -178,7 +178,7 @@ class CrewStructuredTool:
                         f"not found in args_schema"
                     )
 
-    def _parse_args(self, raw_args: Union[str, dict]) -> dict:
+    def _parse_args(self, raw_args: str | dict) -> dict:
         """Parse and validate the input arguments against the schema.
 
         Args:
@@ -203,8 +203,8 @@ class CrewStructuredTool:
 
     async def ainvoke(
         self,
-        input: Union[str, dict],
-        config: Optional[dict] = None,
+        input: str | dict,
+        config: dict | None = None,
         **kwargs: Any,
     ) -> Any:
         """Asynchronously invoke the tool.
@@ -237,7 +237,7 @@ class CrewStructuredTool:
         return self.invoke(input_dict)
 
     def invoke(
-        self, input: Union[str, dict], config: Optional[dict] = None, **kwargs: Any
+        self, input: str | dict, config: dict | None = None, **kwargs: Any
     ) -> Any:
         """Main method for tool execution."""
         parsed_args = self._parse_args(input)

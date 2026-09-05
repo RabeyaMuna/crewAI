@@ -3,7 +3,6 @@ import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 from auth0.authentication.token_verifier import (
     AsymmetricSignatureVerifier,
@@ -71,7 +70,7 @@ class TokenManager:
         encrypted_data = self.fernet.encrypt(json.dumps(data).encode())
         self.save_secure_file(self.file_path, encrypted_data)
 
-    def get_token(self) -> Optional[str]:
+    def get_token(self) -> str | None:
         """
         Get the access token if it is valid and not expired.
 
@@ -127,7 +126,7 @@ class TokenManager:
         # Set appropriate permissions (read/write for owner only)
         os.chmod(file_path, 0o600)
 
-    def read_secure_file(self, filename: str) -> Optional[bytes]:
+    def read_secure_file(self, filename: str) -> bytes | None:
         """
         Read the content of a secure file.
 

@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Dict, Optional
+from typing import Any
 
 from litellm.integrations.custom_logger import CustomLogger
 from litellm.types.utils import Usage
@@ -8,13 +8,13 @@ from crewai.agents.agent_builder.utilities.base_token_process import TokenProces
 
 
 class TokenCalcHandler(CustomLogger):
-    def __init__(self, token_cost_process: Optional[TokenProcess]):
+    def __init__(self, token_cost_process: TokenProcess | None):
         self.token_cost_process = token_cost_process
 
     def log_success_event(
         self,
-        kwargs: Dict[str, Any],
-        response_obj: Dict[str, Any],
+        kwargs: dict[str, Any],
+        response_obj: dict[str, Any],
         start_time: float,
         end_time: float,
     ) -> None:

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -22,10 +22,10 @@ class LLMCallStartedEvent(BaseEvent):
     """
 
     type: str = "llm_call_started"
-    messages: Union[str, List[Dict[str, Any]]]
-    tools: Optional[List[dict]] = None
-    callbacks: Optional[List[Any]] = None
-    available_functions: Optional[Dict[str, Any]] = None
+    messages: str | list[dict[str, Any]]
+    tools: list[dict] | None = None
+    callbacks: list[Any] | None = None
+    available_functions: dict[str, Any] | None = None
 
 
 class LLMCallCompletedEvent(BaseEvent):
@@ -45,13 +45,13 @@ class LLMCallFailedEvent(BaseEvent):
 
 class FunctionCall(BaseModel):
     arguments: str
-    name: Optional[str] = None
+    name: str | None = None
 
 
 class ToolCall(BaseModel):
-    id: Optional[str] = None
+    id: str | None = None
     function: FunctionCall
-    type: Optional[str] = None
+    type: str | None = None
     index: int
 
 
@@ -60,4 +60,4 @@ class LLMStreamChunkEvent(BaseEvent):
 
     type: str = "llm_stream_chunk"
     chunk: str
-    tool_call: Optional[ToolCall] = None
+    tool_call: ToolCall | None = None

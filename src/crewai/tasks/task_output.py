@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -10,16 +10,16 @@ class TaskOutput(BaseModel):
     """Class that represents the result of a task."""
 
     description: str = Field(description="Description of the task")
-    name: Optional[str] = Field(description="Name of the task", default=None)
-    expected_output: Optional[str] = Field(
+    name: str | None = Field(description="Name of the task", default=None)
+    expected_output: str | None = Field(
         description="Expected output of the task", default=None
     )
-    summary: Optional[str] = Field(description="Summary of the task", default=None)
+    summary: str | None = Field(description="Summary of the task", default=None)
     raw: str = Field(description="Raw output of the task", default="")
-    pydantic: Optional[BaseModel] = Field(
+    pydantic: BaseModel | None = Field(
         description="Pydantic output of task", default=None
     )
-    json_dict: Optional[Dict[str, Any]] = Field(
+    json_dict: dict[str, Any] | None = Field(
         description="JSON dictionary of task", default=None
     )
     agent: str = Field(description="Agent that executed the task")
@@ -35,7 +35,7 @@ class TaskOutput(BaseModel):
         return self
 
     @property
-    def json(self) -> Optional[str]:
+    def json(self) -> str | None:
         if self.output_format != OutputFormat.JSON:
             raise ValueError(
                 """
@@ -47,7 +47,7 @@ class TaskOutput(BaseModel):
 
         return json.dumps(self.json_dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert json_output and pydantic_output to a dictionary."""
         output_dict = {}
         if self.json_dict:

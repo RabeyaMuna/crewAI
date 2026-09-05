@@ -1,12 +1,10 @@
 """Error message definitions for CrewAI database operations."""
 
-from typing import Optional
-
 
 class DatabaseOperationError(Exception):
     """Base exception class for database operation errors."""
 
-    def __init__(self, message: str, original_error: Optional[Exception] = None):
+    def __init__(self, message: str, original_error: Exception | None = None):
         """Initialize the database operation error.
 
         Args:
@@ -42,5 +40,3 @@ class DatabaseError:
 
 class AgentRepositoryError(Exception):
     """Exception raised when an agent repository is not found."""
-
-    ...

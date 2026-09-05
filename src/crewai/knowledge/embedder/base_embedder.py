@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 import numpy as np
 
@@ -10,7 +9,7 @@ class BaseEmbedder(ABC):
     """
 
     @abstractmethod
-    def embed_chunks(self, chunks: List[str]) -> np.ndarray:
+    def embed_chunks(self, chunks: list[str]) -> np.ndarray:
         """
         Generate embeddings for a list of text chunks
 
@@ -20,10 +19,9 @@ class BaseEmbedder(ABC):
         Returns:
             Array of embeddings
         """
-        pass
 
     @abstractmethod
-    def embed_texts(self, texts: List[str]) -> np.ndarray:
+    def embed_texts(self, texts: list[str]) -> np.ndarray:
         """
         Generate embeddings for a list of texts
 
@@ -33,7 +31,6 @@ class BaseEmbedder(ABC):
         Returns:
             Array of embeddings
         """
-        pass
 
     @abstractmethod
     def embed_text(self, text: str) -> np.ndarray:
@@ -46,10 +43,8 @@ class BaseEmbedder(ABC):
         Returns:
             Embedding array
         """
-        pass
 
     @property
     @abstractmethod
     def dimension(self) -> int:
         """Get the dimension of the embeddings"""
-        pass

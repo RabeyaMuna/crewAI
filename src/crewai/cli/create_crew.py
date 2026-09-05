@@ -130,7 +130,7 @@ def create_crew(name, provider=None, skip_provider=False, parent_folder=None):
             )
 
         # Check if the selected provider has predefined models
-        if selected_provider in MODELS and MODELS[selected_provider]:
+        if MODELS.get(selected_provider):
             while True:
                 selected_model = select_model(selected_provider, provider_models)
                 if selected_model is None:  # User typed 'q'

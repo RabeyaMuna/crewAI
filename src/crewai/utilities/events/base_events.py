@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -11,9 +11,9 @@ class BaseEvent(BaseModel):
 
     timestamp: datetime = Field(default_factory=datetime.now)
     type: str
-    source_fingerprint: Optional[str] = None  # UUID string of the source entity
-    source_type: Optional[str] = None  # "agent", "task", "crew"
-    fingerprint_metadata: Optional[Dict[str, Any]] = None  # Any relevant metadata
+    source_fingerprint: str | None = None  # UUID string of the source entity
+    source_type: str | None = None  # "agent", "task", "crew"
+    fingerprint_metadata: dict[str, Any] | None = None  # Any relevant metadata
 
     def to_json(self, exclude: set[str] | None = None):
         """

@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Dict, Optional
+from typing import Any
 
 from crewai.memory.memory import Memory
 
@@ -31,8 +31,8 @@ class UserMemory(Memory):
     def save(
         self,
         value,
-        metadata: Optional[Dict[str, Any]] = None,
-        agent: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        agent: str | None = None,
     ) -> None:
         # TODO: Change this function since we want to take care of the case where we save memories for the usr
         data = f"Remember the details about the user: {value}"

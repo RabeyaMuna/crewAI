@@ -2,17 +2,11 @@ import asyncio
 import copy
 import inspect
 import logging
+from collections.abc import Callable
 from typing import (
     Any,
-    Callable,
-    Dict,
     Generic,
-    List,
-    Optional,
-    Set,
-    Type,
     TypeVar,
-    Union,
     cast,
 )
 from uuid import uuid4
@@ -47,15 +41,13 @@ class FlowState(BaseModel):
 
 
 # Type variables with explicit bounds
-T = TypeVar(
-    "T", bound=Union[Dict[str, Any], BaseModel]
-)  # Generic flow state type parameter
+T = TypeVar("T", bound=dict[str, Any] | BaseModel)  # Generic flow state type parameter
 StateT = TypeVar(
-    "StateT", bound=Union[Dict[str, Any], BaseModel]
+    "StateT", bound=dict[str, Any] | BaseModel
 )  # State validation type parameter
 
 
-def ensure_state_type(state: Any, expected_type: Type[StateT]) -> StateT:
+def ensure_state_type(state: Any, expected_type: type[StateT]) -> StateT:
     """Ensure state matches expected type with proper validation.
 
     Args:
@@ -95,7 +87,7 @@ def ensure_state_type(state: Any, expected_type: Type[StateT]) -> StateT:
     raise TypeError(f"Invalid expected_type: {expected_type}")
 
 
-def start(condition: Optional[Union[str, dict, Callable]] = None) -> Callable:
+def start(condition: str | dict | Callable | None = None) -> Callable:
     """
     Marks a method as a flow's starting point.
 
@@ -162,7 +154,7 @@ def start(condition: Optional[Union[str, dict, Callable]] = None) -> Callable:
     return decorator
 
 
-def listen(condition: Union[str, dict, Callable]) -> Callable:
+def listen(condition: str | dict | Callable) -> Callable:
     """
     Creates a listener that executes when specified conditions are met.
 
@@ -222,7 +214,7 @@ def listen(condition: Union[str, dict, Callable]) -> Callable:
     return decorator
 
 
-def router(condition: Union[str, dict, Callable]) -> Callable:
+def router(condition: str | dict | Callable) -> Callable:
     """
     Creates a routing method that directs flow execution based on conditions.
 
@@ -288,7 +280,7 @@ def router(condition: Union[str, dict, Callable]) -> Callable:
     return decorator
 
 
-def or_(*conditions: Union[str, dict, Callable]) -> dict:
+def or_(*conditions: str | dict | Callable) -> dict:
     """
     Combines multiple conditions with OR logic for flow control.
 
@@ -334,7 +326,7 @@ def or_(*conditions: Union[str, dict, Callable]) -> dict:
     return {"type": "OR", "methods": methods}
 
 
-def and_(*conditions: Union[str, dict, Callable]) -> dict:
+def and_(*conditions: str | dict | Callable) -> dict:
     """
     Combines multiple conditions with AND logic for flow control.
 
@@ -416,10 +408,10 @@ class FlowMeta(type):
                         if possible_returns:
                             router_paths[attr_name] = possible_returns
 
-        setattr(cls, "_start_methods", start_methods)
-        setattr(cls, "_listeners", listeners)
-        setattr(cls, "_routers", routers)
-        setattr(cls, "_router_paths", router_paths)
+        cls._start_methods = start_methods
+        cls._listeners = listeners
+        cls._routers = routers
+        cls._router_paths = router_paths
 
         return cls
 
@@ -431,13 +423,13 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
     _printer = Printer()
 
-    _start_methods: List[str] = []
-    _listeners: Dict[str, tuple[str, List[str]]] = {}
-    _routers: Set[str] = set()
-    _router_paths: Dict[str, List[str]] = {}
-    initial_state: Union[Type[T], T, None] = None
+    _start_methods: list[str] = []
+    _listeners: dict[str, tuple[str, list[str]]] = {}
+    _routers: set[str] = set()
+    _router_paths: dict[str, list[str]] = {}
+    initial_state: type[T] | T | None = None
 
-    def __class_getitem__(cls: Type["Flow"], item: Type[T]) -> Type["Flow"]:
+    def __class_getitem__(cls: type["Flow"], item: type[T]) -> type["Flow"]:
         class _FlowGeneric(cls):  # type: ignore
             _initial_state_T = item  # type: ignore
 
@@ -446,7 +438,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
     def __init__(
         self,
-        persistence: Optional[FlowPersistence] = None,
+        persistence: FlowPersistence | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize a new Flow instance.
@@ -456,11 +448,11 @@ class Flow(Generic[T], metaclass=FlowMeta):
             **kwargs: Additional state values to initialize or override
         """
         # Initialize basic instance attributes
-        self._methods: Dict[str, Callable] = {}
-        self._method_execution_counts: Dict[str, int] = {}
-        self._pending_and_listeners: Dict[str, Set[str]] = {}
-        self._method_outputs: List[Any] = []  # List to store all method outputs
-        self._persistence: Optional[FlowPersistence] = persistence
+        self._methods: dict[str, Callable] = {}
+        self._method_execution_counts: dict[str, int] = {}
+        self._pending_and_listeners: dict[str, set[str]] = {}
+        self._method_outputs: list[Any] = []  # List to store all method outputs
+        self._persistence: FlowPersistence | None = persistence
 
         # Initialize state with initial values
         self._state = self._create_initial_state()
@@ -505,13 +497,13 @@ class Flow(Generic[T], metaclass=FlowMeta):
         """
         # Handle case where initial_state is None but we have a type parameter
         if self.initial_state is None and hasattr(self, "_initial_state_T"):
-            state_type = getattr(self, "_initial_state_T")
+            state_type = self._initial_state_T
             if isinstance(state_type, type):
                 if issubclass(state_type, FlowState):
                     # Create instance without id, then set it
                     instance = state_type()
                     if not hasattr(instance, "id"):
-                        setattr(instance, "id", str(uuid4()))
+                        instance.id = str(uuid4())
                     return cast(T, instance)
                 elif issubclass(state_type, BaseModel):
                     # Create a new type that includes the ID field
@@ -520,7 +512,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
                     instance = StateWithId()
                     if not hasattr(instance, "id"):
-                        setattr(instance, "id", str(uuid4()))
+                        instance.id = str(uuid4())
                     return cast(T, instance)
                 elif state_type is dict:
                     return cast(T, {"id": str(uuid4())})
@@ -583,7 +575,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
         return self._state
 
     @property
-    def method_outputs(self) -> List[Any]:
+    def method_outputs(self) -> list[Any]:
         """Returns the list of all outputs from executed methods."""
         return self._method_outputs
 
@@ -620,7 +612,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
         except (AttributeError, TypeError):
             return ""  # Safely handle any unexpected attribute access issues
 
-    def _initialize_state(self, inputs: Dict[str, Any]) -> None:
+    def _initialize_state(self, inputs: dict[str, Any]) -> None:
         """Initialize or update flow state with new inputs.
 
         Args:
@@ -674,7 +666,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
         else:
             raise TypeError("State must be a BaseModel instance or a dictionary.")
 
-    def _restore_state(self, stored_state: Dict[str, Any]) -> None:
+    def _restore_state(self, stored_state: dict[str, Any]) -> None:
         """Restore flow state from persistence.
 
         Args:
@@ -708,7 +700,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
         else:
             raise TypeError(f"State must be dict or BaseModel, got {type(self._state)}")
 
-    def kickoff(self, inputs: Optional[Dict[str, Any]] = None) -> Any:
+    def kickoff(self, inputs: dict[str, Any] | None = None) -> Any:
         """
         Start the flow execution in a synchronous context.
 
@@ -721,7 +713,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
         return asyncio.run(run_flow())
 
-    async def kickoff_async(self, inputs: Optional[Dict[str, Any]] = None) -> Any:
+    async def kickoff_async(self, inputs: dict[str, Any] | None = None) -> Any:
         """
         Start the flow execution asynchronously.
 
@@ -742,7 +734,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
                 if isinstance(self._state, dict):
                     self._state["id"] = inputs["id"]
                 elif isinstance(self._state, BaseModel):
-                    setattr(self._state, "id", inputs["id"])
+                    self._state.id = inputs["id"]
 
             # If persistence is enabled, attempt to restore the stored state using the provided id.
             if "id" in inputs and self._persistence is not None:
@@ -873,7 +865,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
                     error=e,
                 ),
             )
-            raise e
+            raise
 
     async def _execute_listeners(self, trigger_method: str, result: Any) -> None:
         """
@@ -936,7 +928,7 @@ class Flow(Generic[T], metaclass=FlowMeta):
 
     def _find_triggered_methods(
         self, trigger_method: str, router_only: bool
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Finds all methods that should be triggered based on conditions.
 

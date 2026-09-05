@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -10,10 +10,10 @@ class Prompts(BaseModel):
 
     i18n: I18N = Field(default=I18N())
     has_tools: bool = False
-    system_template: Optional[str] = None
-    prompt_template: Optional[str] = None
-    response_template: Optional[str] = None
-    use_system_prompt: Optional[bool] = False
+    system_template: str | None = None
+    prompt_template: str | None = None
+    response_template: str | None = None
+    use_system_prompt: bool | None = False
     agent: Any
 
     def task_execution(self) -> dict[str, str]:

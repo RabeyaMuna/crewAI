@@ -81,7 +81,7 @@ def migrate_pyproject(input_file, output_file):
         # Extract the module name from any existing script
         existing_scripts = new_pyproject["project"]["scripts"]
         module_name = next(
-            (value.split(".")[0] for value in existing_scripts.values() if "." in value)
+            value.split(".")[0] for value in existing_scripts.values() if "." in value
         )
 
         new_pyproject["project"]["scripts"]["run_crew"] = f"{module_name}.main:run"

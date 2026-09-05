@@ -1,5 +1,5 @@
 import subprocess
-from functools import lru_cache
+from functools import cache
 
 
 class Repository:
@@ -36,7 +36,7 @@ class Repository:
             encoding="utf-8",
         ).strip()
 
-    @lru_cache(maxsize=None)
+    @cache
     def is_git_repo(self) -> bool:
         """Check if the current directory is a git repository."""
         try:
@@ -62,10 +62,7 @@ class Repository:
 
     def is_synced(self) -> bool:
         """Return True if the Git repository is fully synced with the remote, False otherwise."""
-        if self.has_uncommitted_changes() or self.is_ahead_or_behind():
-            return False
-        else:
-            return True
+        return not (self.has_uncommitted_changes() or self.is_ahead_or_behind())
 
     def origin_url(self) -> str | None:
         """Get the Git repository's remote URL."""

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from crewai.memory import (
     EntityMemory,
@@ -12,7 +12,7 @@ from crewai.memory import (
 class ContextualMemory:
     def __init__(
         self,
-        memory_config: Optional[Dict[str, Any]],
+        memory_config: dict[str, Any] | None,
         stm: ShortTermMemory,
         ltm: LongTermMemory,
         em: EntityMemory,
@@ -66,7 +66,7 @@ class ContextualMemory:
         )
         return f"Recent Insights:\n{formatted_results}" if stm_results else ""
 
-    def _fetch_ltm_context(self, task) -> Optional[str]:
+    def _fetch_ltm_context(self, task) -> str | None:
         """
         Fetches historical data or insights from LTM that are relevant to the task's description and expected_output,
         formatted as bullet points.

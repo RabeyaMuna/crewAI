@@ -4,7 +4,7 @@ import logging
 import os
 import shutil
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from chromadb.api import ClientAPI
 
@@ -100,21 +100,21 @@ class RAGStorage(BaseRAGStorage):
 
         return f"{base_path}/{file_name}"
 
-    def save(self, value: Any, metadata: Dict[str, Any]) -> None:
+    def save(self, value: Any, metadata: dict[str, Any]) -> None:
         if not hasattr(self, "app") or not hasattr(self, "collection"):
             self._initialize_app()
         try:
             self._generate_embedding(value, metadata)
         except Exception as e:
-            logging.error(f"Error during {self.type} save: {str(e)}")
+            logging.error(f"Error during {self.type} save: {e!s}")
 
     def search(
         self,
         query: str,
         limit: int = 3,
-        filter: Optional[dict] = None,
+        filter: dict | None = None,
         score_threshold: float = 0.35,
-    ) -> List[Any]:
+    ) -> list[Any]:
         if not hasattr(self, "app"):
             self._initialize_app()
 
@@ -135,10 +135,10 @@ class RAGStorage(BaseRAGStorage):
 
             return results
         except Exception as e:
-            logging.error(f"Error during {self.type} search: {str(e)}")
+            logging.error(f"Error during {self.type} search: {e!s}")
             return []
 
-    def _generate_embedding(self, text: str, metadata: Dict[str, Any]) -> None:  # type: ignore
+    def _generate_embedding(self, text: str, metadata: dict[str, Any]) -> None:  # type: ignore
         if not hasattr(self, "app") or not hasattr(self, "collection"):
             self._initialize_app()
 

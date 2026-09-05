@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, List, Optional, Union
+from collections.abc import Callable
+from typing import Any
 
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.agents.agent_builder.base_agent_executor_mixin import CrewAgentExecutorMixin
@@ -27,14 +28,14 @@ from crewai.utilities.agent_utils import (
     process_llm_response,
 )
 from crewai.utilities.constants import MAX_LLM_RETRY, TRAINING_DATA_FILE
+from crewai.utilities.events.agent_events import (
+    AgentLogsExecutionEvent,
+    AgentLogsStartedEvent,
+)
+from crewai.utilities.events.crewai_event_bus import crewai_event_bus
 from crewai.utilities.logger import Logger
 from crewai.utilities.tool_utils import execute_tool_and_check_finality
 from crewai.utilities.training_handler import CrewTrainingHandler
-from crewai.utilities.events.agent_events import (
-    AgentLogsStartedEvent,
-    AgentLogsExecutionEvent,
-)
-from crewai.utilities.events.crewai_event_bus import crewai_event_bus
 
 
 class CrewAgentExecutor(CrewAgentExecutorMixin):
@@ -48,18 +49,22 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
         agent: BaseAgent,
         prompt: dict[str, str],
         max_iter: int,
-        tools: List[CrewStructuredTool],
+        tools: list[CrewStructuredTool],
         tools_names: str,
-        stop_words: List[str],
+        stop_words: list[str],
         tools_description: str,
         tools_handler: ToolsHandler,
         step_callback: Any = None,
-        original_tools: List[Any] = [],
+        original_tools: list[Any] | None = None,
         function_calling_llm: Any = None,
         respect_context_window: bool = False,
-        request_within_rpm_limit: Optional[Callable[[], bool]] = None,
-        callbacks: List[Any] = [],
+        request_within_rpm_limit: Callable[[], bool] | None = None,
+        callbacks: list[Any] | None = None,
     ):
+        if callbacks is None:
+            callbacks = []
+        if original_tools is None:
+            original_tools = []
         self._i18n: I18N = I18N()
         self.llm: BaseLLM = llm
         self.task = task
@@ -81,10 +86,10 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
         self.respect_context_window = respect_context_window
         self.request_within_rpm_limit = request_within_rpm_limit
         self.ask_for_human_input = False
-        self.messages: List[Dict[str, str]] = []
+        self.messages: list[dict[str, str]] = []
         self.iterations = 0
         self.log_error_after = 3
-        self.tool_name_to_tool_map: Dict[str, Union[CrewStructuredTool, BaseTool]] = {
+        self.tool_name_to_tool_map: dict[str, CrewStructuredTool | BaseTool] = {
             tool.name: tool for tool in self.tools
         }
         existing_stop = self.llm.stop or []
@@ -96,7 +101,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
             )
         )
 
-    def invoke(self, inputs: Dict[str, str]) -> Dict[str, Any]:
+    def invoke(self, inputs: dict[str, str]) -> dict[str, Any]:
         if "system" in self.prompt:
             system_prompt = self._format_prompt(self.prompt.get("system", ""), inputs)
             user_prompt = self._format_prompt(self.prompt.get("user", ""), inputs)
@@ -122,9 +127,9 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
             handle_unknown_error(self._printer, e)
             if e.__class__.__module__.startswith("litellm"):
                 # Do not retry on litellm errors
-                raise e
+                raise
             else:
-                raise e
+                raise
 
         if self.ask_for_human_input:
             formatted_answer = self._handle_human_feedback(formatted_answer)
@@ -159,7 +164,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
                     messages=self.messages,
                     callbacks=self.callbacks,
                     printer=self._printer,
-                    fallback_llms=getattr(self.agent, 'fallback_llms', None),
+                    fallback_llms=getattr(self.agent, "fallback_llms", None),
                 )
                 formatted_answer = process_llm_response(answer, self.use_stop_words)
 
@@ -208,7 +213,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
             except Exception as e:
                 if e.__class__.__module__.startswith("litellm"):
                     # Do not retry on litellm errors
-                    raise e
+                    raise
                 if is_context_length_exceeded(e):
                     handle_context_length(
                         respect_context_window=self.respect_context_window,
@@ -221,7 +226,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
                     continue
                 else:
                     handle_unknown_error(self._printer, e)
-                    raise e
+                    raise
             finally:
                 self.iterations += 1
 
@@ -235,7 +240,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
 
     def _handle_agent_action(
         self, formatted_answer: AgentAction, tool_result: ToolResult
-    ) -> Union[AgentAction, AgentFinish]:
+    ) -> AgentAction | AgentFinish:
         """Handle the AgentAction, execute tools, and process the results."""
         # Special case for add_image_tool
         add_image_tool = self._i18n.tools("add_image")
@@ -273,15 +278,13 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
             self.agent,
             AgentLogsStartedEvent(
                 agent_role=self.agent.role,
-                task_description=(
-                    getattr(self.task, "description") if self.task else "Not Found"
-                ),
+                task_description=(self.task.description if self.task else "Not Found"),
                 verbose=self.agent.verbose
                 or (hasattr(self, "crew") and getattr(self.crew, "verbose", False)),
             ),
         )
 
-    def _show_logs(self, formatted_answer: Union[AgentAction, AgentFinish]):
+    def _show_logs(self, formatted_answer: AgentAction | AgentFinish):
         """Show logs for the agent's execution."""
         if self.agent is None:
             raise ValueError("Agent cannot be None")
@@ -330,7 +333,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
         ]
 
     def _handle_crew_training_output(
-        self, result: AgentFinish, human_feedback: Optional[str] = None
+        self, result: AgentFinish, human_feedback: str | None = None
     ) -> None:
         """Handle the process of saving training data."""
         agent_id = str(self.agent.id)  # type: ignore
@@ -375,7 +378,7 @@ class CrewAgentExecutor(CrewAgentExecutorMixin):
         training_data[agent_id] = agent_training_data
         training_handler.save(training_data)
 
-    def _format_prompt(self, prompt: str, inputs: Dict[str, str]) -> str:
+    def _format_prompt(self, prompt: str, inputs: dict[str, str]) -> str:
         prompt = prompt.replace("{input}", inputs["input"])
         prompt = prompt.replace("{tool_names}", inputs["tool_names"])
         prompt = prompt.replace("{tools}", inputs["tools"])

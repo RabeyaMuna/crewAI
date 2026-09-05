@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,18 +18,18 @@ class Knowledge(BaseModel):
         embedder: Optional[Dict[str, Any]] = None
     """
 
-    sources: List[BaseKnowledgeSource] = Field(default_factory=list)
+    sources: list[BaseKnowledgeSource] = Field(default_factory=list)
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    storage: Optional[KnowledgeStorage] = Field(default=None)
-    embedder: Optional[Dict[str, Any]] = None
-    collection_name: Optional[str] = None
+    storage: KnowledgeStorage | None = Field(default=None)
+    embedder: dict[str, Any] | None = None
+    collection_name: str | None = None
 
     def __init__(
         self,
         collection_name: str,
-        sources: List[BaseKnowledgeSource],
-        embedder: Optional[Dict[str, Any]] = None,
-        storage: Optional[KnowledgeStorage] = None,
+        sources: list[BaseKnowledgeSource],
+        embedder: dict[str, Any] | None = None,
+        storage: KnowledgeStorage | None = None,
         **data,
     ):
         super().__init__(**data)
@@ -43,8 +43,8 @@ class Knowledge(BaseModel):
         self.storage.initialize_knowledge_storage()
 
     def query(
-        self, query: List[str], results_limit: int = 3, score_threshold: float = 0.35
-    ) -> List[Dict[str, Any]]:
+        self, query: list[str], results_limit: int = 3, score_threshold: float = 0.35
+    ) -> list[dict[str, Any]]:
         """
         Query across all knowledge sources to find the most relevant information.
         Returns the top_k most relevant chunks.
@@ -67,8 +67,8 @@ class Knowledge(BaseModel):
             for source in self.sources:
                 source.storage = self.storage
                 source.add()
-        except Exception as e:
-            raise e
+        except Exception:
+            raise
 
     def reset(self) -> None:
         if self.storage:

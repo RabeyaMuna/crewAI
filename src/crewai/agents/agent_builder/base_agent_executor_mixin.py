@@ -6,8 +6,8 @@ from crewai.memory.long_term.long_term_memory_item import LongTermMemoryItem
 from crewai.utilities import I18N
 from crewai.utilities.converter import ConverterError
 from crewai.utilities.evaluators.task_evaluator import TaskEvaluator
-from crewai.utilities.printer import Printer
 from crewai.utilities.events.event_listener import event_listener
+from crewai.utilities.printer import Printer
 
 if TYPE_CHECKING:
     from crewai.agents.agent_builder.base_agent import BaseAgent
@@ -46,7 +46,6 @@ class CrewAgentExecutorMixin:
                     )
             except Exception as e:
                 print(f"Failed to add to short term memory: {e}")
-                pass
 
     def _create_external_memory(self, output) -> None:
         """Create and save a external-term memory item if conditions are met."""
@@ -67,7 +66,6 @@ class CrewAgentExecutorMixin:
                 )
             except Exception as e:
                 print(f"Failed to add to external memory: {e}")
-                pass
 
     def _create_long_term_memory(self, output) -> None:
         """Create and save long-term and entity memory items based on evaluation."""
@@ -110,10 +108,8 @@ class CrewAgentExecutorMixin:
                     self.crew._entity_memory.save(entity_memory)
             except AttributeError as e:
                 print(f"Missing attributes for long term memory: {e}")
-                pass
             except Exception as e:
                 print(f"Failed to add to long term memory: {e}")
-                pass
         elif (
             self.crew
             and self.crew._long_term_memory
@@ -127,7 +123,7 @@ class CrewAgentExecutorMixin:
     def _ask_human_input(self, final_answer: str) -> str:
         """Prompt human input with mode-appropriate messaging."""
         event_listener.formatter.pause_live_updates()
-        
+
         try:
             self._printer.print(
                 content=f"\033[1m\033[95m ## Final Result:\033[00m \033[92m{final_answer}\033[00m"
@@ -157,7 +153,9 @@ class CrewAgentExecutorMixin:
             self._printer.print(content=prompt, color="bold_yellow")
             response = input()
             if response.strip() != "":
-                self._printer.print(content="\nProcessing your feedback...", color="cyan")
+                self._printer.print(
+                    content="\nProcessing your feedback...", color="cyan"
+                )
             return response
         finally:
             event_listener.formatter.resume_live_updates()

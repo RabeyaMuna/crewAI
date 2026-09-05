@@ -29,7 +29,7 @@ def setup_test_environment():
             test_file = storage_dir / ".permissions_test"
             test_file.touch()
             test_file.unlink()
-        except (OSError, IOError) as e:
+        except OSError as e:
             raise RuntimeError(
                 f"Test storage directory {storage_dir} is not writable: {e}"
             )

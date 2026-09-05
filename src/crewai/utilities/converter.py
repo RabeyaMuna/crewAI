@@ -1,6 +1,6 @@
 import json
 import re
-from typing import Any, Optional, Type, Union, get_args, get_origin
+from typing import Any, Union, get_args, get_origin
 
 from pydantic import BaseModel, ValidationError
 
@@ -116,11 +116,11 @@ class Converter(OutputConverter):
 
 def convert_to_model(
     result: str,
-    output_pydantic: Optional[Type[BaseModel]],
-    output_json: Optional[Type[BaseModel]],
+    output_pydantic: type[BaseModel] | None,
+    output_json: type[BaseModel] | None,
     agent: Any,
-    converter_cls: Optional[Type[Converter]] = None,
-) -> Union[dict, BaseModel, str]:
+    converter_cls: type[Converter] | None = None,
+) -> dict | BaseModel | str:
     model = output_pydantic or output_json
     if model is None:
         return result
@@ -146,8 +146,8 @@ def convert_to_model(
 
 
 def validate_model(
-    result: str, model: Type[BaseModel], is_json_output: bool
-) -> Union[dict, BaseModel]:
+    result: str, model: type[BaseModel], is_json_output: bool
+) -> dict | BaseModel:
     exported_result = model.model_validate_json(result)
     if is_json_output:
         return exported_result.model_dump()
@@ -156,11 +156,11 @@ def validate_model(
 
 def handle_partial_json(
     result: str,
-    model: Type[BaseModel],
+    model: type[BaseModel],
     is_json_output: bool,
     agent: Any,
-    converter_cls: Optional[Type[Converter]] = None,
-) -> Union[dict, BaseModel, str]:
+    converter_cls: type[Converter] | None = None,
+) -> dict | BaseModel | str:
     match = re.search(r"({.*})", result, re.DOTALL)
     if match:
         try:
@@ -185,11 +185,11 @@ def handle_partial_json(
 
 def convert_with_instructions(
     result: str,
-    model: Type[BaseModel],
+    model: type[BaseModel],
     is_json_output: bool,
     agent: Any,
-    converter_cls: Optional[Type[Converter]] = None,
-) -> Union[dict, BaseModel, str]:
+    converter_cls: type[Converter] | None = None,
+) -> dict | BaseModel | str:
     llm = agent.function_calling_llm or agent.llm
     instructions = get_conversion_instructions(model, llm)
     converter = create_converter(
@@ -214,7 +214,7 @@ def convert_with_instructions(
     return exported_result
 
 
-def get_conversion_instructions(model: Type[BaseModel], llm: Any) -> str:
+def get_conversion_instructions(model: type[BaseModel], llm: Any) -> str:
     instructions = "Please convert the following text into valid JSON."
     if llm and not isinstance(llm, str) and llm.supports_function_calling():
         model_schema = PydanticSchemaParser(model=model).get_schema()
@@ -232,8 +232,8 @@ def get_conversion_instructions(model: Type[BaseModel], llm: Any) -> str:
 
 
 def create_converter(
-    agent: Optional[Any] = None,
-    converter_cls: Optional[Type[Converter]] = None,
+    agent: Any | None = None,
+    converter_cls: type[Converter] | None = None,
     *args,
     **kwargs,
 ) -> Converter:
@@ -253,7 +253,7 @@ def create_converter(
     return converter
 
 
-def generate_model_description(model: Type[BaseModel]) -> str:
+def generate_model_description(model: type[BaseModel]) -> str:
     """
     Generate a string description of a Pydantic model's fields and their types.
 

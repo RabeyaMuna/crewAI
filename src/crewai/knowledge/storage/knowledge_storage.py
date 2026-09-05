@@ -4,7 +4,7 @@ import io
 import logging
 import os
 import shutil
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import chromadb
 import chromadb.errors
@@ -43,25 +43,25 @@ class KnowledgeStorage(BaseKnowledgeStorage):
     search efficiency.
     """
 
-    collection: Optional[chromadb.Collection] = None
-    collection_name: Optional[str] = "knowledge"
-    app: Optional[ClientAPI] = None
+    collection: chromadb.Collection | None = None
+    collection_name: str | None = "knowledge"
+    app: ClientAPI | None = None
 
     def __init__(
         self,
-        embedder: Optional[Dict[str, Any]] = None,
-        collection_name: Optional[str] = None,
+        embedder: dict[str, Any] | None = None,
+        collection_name: str | None = None,
     ):
         self.collection_name = collection_name
         self._set_embedder_config(embedder)
 
     def search(
         self,
-        query: List[str],
+        query: list[str],
         limit: int = 3,
-        filter: Optional[dict] = None,
+        filter: dict | None = None,
         score_threshold: float = 0.35,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         with suppress_logging():
             if self.collection:
                 fetched = self.collection.query(
@@ -123,8 +123,8 @@ class KnowledgeStorage(BaseKnowledgeStorage):
 
     def save(
         self,
-        documents: List[str],
-        metadata: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None,
+        documents: list[str],
+        metadata: dict[str, Any] | list[dict[str, Any]] | None = None,
     ):
         if not self.collection:
             raise Exception("Collection not initialized")
@@ -156,7 +156,7 @@ class KnowledgeStorage(BaseKnowledgeStorage):
                 filtered_ids.append(doc_id)
 
             # If we have no metadata at all, set it to None
-            final_metadata: Optional[OneOrMany[chromadb.Metadata]] = (
+            final_metadata: OneOrMany[chromadb.Metadata] | None = (
                 None if all(m is None for m in filtered_metadata) else filtered_metadata
             )
 
@@ -189,7 +189,7 @@ class KnowledgeStorage(BaseKnowledgeStorage):
             api_key=os.getenv("OPENAI_API_KEY"), model_name="text-embedding-3-small"
         )
 
-    def _set_embedder_config(self, embedder: Optional[Dict[str, Any]] = None) -> None:
+    def _set_embedder_config(self, embedder: dict[str, Any] | None = None) -> None:
         """Set the embedding configuration for the knowledge storage.
 
         Args:

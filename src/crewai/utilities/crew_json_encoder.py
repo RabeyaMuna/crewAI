@@ -11,13 +11,14 @@ from pydantic import BaseModel
 
 class CrewJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder for CrewAI objects and special types."""
+
     def default(self, obj):
         if isinstance(obj, BaseModel):
             return self._handle_pydantic_model(obj)
-        elif isinstance(obj, UUID) or isinstance(obj, Decimal) or isinstance(obj, Enum):
+        elif isinstance(obj, (UUID, Decimal, Enum)):
             return str(obj)
 
-        elif isinstance(obj, datetime) or isinstance(obj, date):
+        elif isinstance(obj, (datetime, date)):
             return obj.isoformat()
 
         return super().default(obj)

@@ -1,5 +1,4 @@
 from importlib.metadata import version as get_version
-from typing import Optional
 
 import click
 
@@ -138,8 +137,12 @@ def log_tasks_outputs() -> None:
 @click.option("-s", "--short", is_flag=True, help="Reset SHORT TERM memory")
 @click.option("-e", "--entities", is_flag=True, help="Reset ENTITIES memory")
 @click.option("-kn", "--knowledge", is_flag=True, help="Reset KNOWLEDGE storage")
-@click.option("-akn", "--agent-knowledge", is_flag=True, help="Reset AGENT KNOWLEDGE storage")
-@click.option("-k","--kickoff-outputs",is_flag=True,help="Reset LATEST KICKOFF TASK OUTPUTS")
+@click.option(
+    "-akn", "--agent-knowledge", is_flag=True, help="Reset AGENT KNOWLEDGE storage"
+)
+@click.option(
+    "-k", "--kickoff-outputs", is_flag=True, help="Reset LATEST KICKOFF TASK OUTPUTS"
+)
 @click.option("-a", "--all", is_flag=True, help="Reset ALL memories")
 def reset_memories(
     long: bool,
@@ -154,13 +157,23 @@ def reset_memories(
     Reset the crew memories (long, short, entity, latest_crew_kickoff_ouputs, knowledge, agent_knowledge). This will delete all the data saved.
     """
     try:
-        memory_types = [long, short, entities, knowledge, agent_knowledge, kickoff_outputs, all]
+        memory_types = [
+            long,
+            short,
+            entities,
+            knowledge,
+            agent_knowledge,
+            kickoff_outputs,
+            all,
+        ]
         if not any(memory_types):
             click.echo(
                 "Please specify at least one memory type to reset using the appropriate flags."
             )
             return
-        reset_memories_command(long, short, entities, knowledge, agent_knowledge, kickoff_outputs, all)
+        reset_memories_command(
+            long, short, entities, knowledge, agent_knowledge, kickoff_outputs, all
+        )
     except Exception as e:
         click.echo(f"An error occurred while resetting memories: {e}", err=True)
 
@@ -187,10 +200,10 @@ def test(n_iterations: int, model: str):
 
 
 @crewai.command(
-    context_settings=dict(
-        ignore_unknown_options=True,
-        allow_extra_args=True,
-    )
+    context_settings={
+        "ignore_unknown_options": True,
+        "allow_extra_args": True,
+    }
 )
 @click.pass_context
 def install(context):
@@ -226,13 +239,11 @@ def login():
 @crewai.group()
 def deploy():
     """Deploy the Crew CLI group."""
-    pass
 
 
 @crewai.group()
 def tool():
     """Tool Repository related commands."""
-    pass
 
 
 @deploy.command(name="create")
@@ -252,7 +263,7 @@ def deploy_list():
 
 @deploy.command(name="push")
 @click.option("-u", "--uuid", type=str, help="Crew UUID parameter")
-def deploy_push(uuid: Optional[str]):
+def deploy_push(uuid: str | None):
     """Deploy the Crew."""
     deploy_cmd = DeployCommand()
     deploy_cmd.deploy(uuid=uuid)
@@ -260,7 +271,7 @@ def deploy_push(uuid: Optional[str]):
 
 @deploy.command(name="status")
 @click.option("-u", "--uuid", type=str, help="Crew UUID parameter")
-def deply_status(uuid: Optional[str]):
+def deply_status(uuid: str | None):
     """Get the status of a deployment."""
     deploy_cmd = DeployCommand()
     deploy_cmd.get_crew_status(uuid=uuid)
@@ -268,7 +279,7 @@ def deply_status(uuid: Optional[str]):
 
 @deploy.command(name="logs")
 @click.option("-u", "--uuid", type=str, help="Crew UUID parameter")
-def deploy_logs(uuid: Optional[str]):
+def deploy_logs(uuid: str | None):
     """Get the logs of a deployment."""
     deploy_cmd = DeployCommand()
     deploy_cmd.get_crew_logs(uuid=uuid)
@@ -276,7 +287,7 @@ def deploy_logs(uuid: Optional[str]):
 
 @deploy.command(name="remove")
 @click.option("-u", "--uuid", type=str, help="Crew UUID parameter")
-def deploy_remove(uuid: Optional[str]):
+def deploy_remove(uuid: str | None):
     """Remove a deployment."""
     deploy_cmd = DeployCommand()
     deploy_cmd.remove_crew(uuid=uuid)
@@ -316,7 +327,6 @@ def tool_publish(is_public: bool, force: bool):
 @crewai.group()
 def flow():
     """Flow related commands."""
-    pass
 
 
 @flow.command(name="kickoff")
@@ -348,7 +358,7 @@ def chat():
     and using the Chat LLM to generate responses.
     """
     click.secho(
-        "\nStarting a conversation with the Crew\n" "Type 'exit' or Ctrl+C to quit.\n",
+        "\nStarting a conversation with the Crew\nType 'exit' or Ctrl+C to quit.\n",
     )
 
     run_chat()
@@ -357,7 +367,6 @@ def chat():
 @crewai.group(invoke_without_command=True)
 def org():
     """Organization management commands."""
-    pass
 
 
 @org.command()

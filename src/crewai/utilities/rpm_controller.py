@@ -1,6 +1,5 @@
 import threading
 import time
-from typing import Optional
 
 from pydantic import BaseModel, Field, PrivateAttr, model_validator
 
@@ -12,19 +11,18 @@ from crewai.utilities.logger import Logger
 class RPMController(BaseModel):
     """Manages requests per minute limiting."""
 
-    max_rpm: Optional[int] = Field(default=None)
+    max_rpm: int | None = Field(default=None)
     logger: Logger = Field(default_factory=lambda: Logger(verbose=False))
     _current_rpm: int = PrivateAttr(default=0)
-    _timer: Optional[threading.Timer] = PrivateAttr(default=None)
-    _lock: Optional[threading.Lock] = PrivateAttr(default=None)
+    _timer: threading.Timer | None = PrivateAttr(default=None)
+    _lock: threading.Lock | None = PrivateAttr(default=None)
     _shutdown_flag: bool = PrivateAttr(default=False)
 
     @model_validator(mode="after")
     def reset_counter(self):
-        if self.max_rpm is not None:
-            if not self._shutdown_flag:
-                self._lock = threading.Lock()
-                self._reset_request_count()
+        if self.max_rpm is not None and not self._shutdown_flag:
+            self._lock = threading.Lock()
+            self._reset_request_count()
         return self
 
     def check_or_wait(self):

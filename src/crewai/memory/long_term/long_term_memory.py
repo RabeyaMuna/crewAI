@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from crewai.memory.long_term.long_term_memory_item import LongTermMemoryItem
 from crewai.memory.memory import Memory
@@ -29,7 +29,7 @@ class LongTermMemory(Memory):
             datetime=item.datetime,
         )
 
-    def search(self, task: str, latest_n: int = 3) -> List[Dict[str, Any]]:  # type: ignore # signature of "search" incompatible with supertype "Memory"
+    def search(self, task: str, latest_n: int = 3) -> list[dict[str, Any]]:  # type: ignore # signature of "search" incompatible with supertype "Memory"
         return self.storage.load(task, latest_n)  # type: ignore # BUG?: "Storage" has no attribute "load"
 
     def reset(self) -> None:

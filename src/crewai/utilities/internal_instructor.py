@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Optional, Type
+from typing import Any
 
 
 class InternalInstructor:
@@ -8,9 +8,9 @@ class InternalInstructor:
     def __init__(
         self,
         content: str,
-        model: Type,
-        agent: Optional[Any] = None,
-        llm: Optional[str] = None,
+        model: type,
+        agent: Any | None = None,
+        llm: str | None = None,
     ):
         self.content = content
         self.agent = agent

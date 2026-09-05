@@ -1,7 +1,6 @@
 """Test Knowledge creation and querying functionality."""
 
 from pathlib import Path
-from typing import List, Union
 from unittest.mock import patch
 
 import pytest
@@ -458,8 +457,7 @@ def test_csv_knowledge_source(mock_vector_db, tmpdir):
     ]
     csv_path = Path(tmpdir.join("data.csv"))
     with open(csv_path, "w", encoding="utf-8") as f:
-        for row in csv_content:
-            f.write(",".join(row) + "\n")
+        f.writelines(",".join(row) + "\n" for row in csv_content)
 
     # Create a CSVKnowledgeSource
     csv_source = CSVKnowledgeSource(
@@ -570,7 +568,7 @@ def test_docling_source(mock_vector_db):
 
 @pytest.mark.vcr
 def test_multiple_docling_sources():
-    urls: List[Union[Path, str]] = [
+    urls: list[Path | str] = [
         "https://lilianweng.github.io/posts/2024-11-28-reward-hacking/",
         "https://lilianweng.github.io/posts/2024-07-07-hallucination/",
     ]

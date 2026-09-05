@@ -28,9 +28,11 @@ def test_evaluate_training_data(converter_mock):
     original_agent.llm.supports_function_calling.return_value = False
     function_return_value = TrainingTaskEvaluation(
         suggestions=[
-            "The initial output was already good, having a detailed explanation. However, the improved output "
-            "gave similar information but in a more professional manner using better vocabulary. For future tasks, "
-            "try to implement more elaborate language and precise terminology from the beginning."
+            (
+                "The initial output was already good, having a detailed explanation. However, the improved output "
+                "gave similar information but in a more professional manner using better vocabulary. For future tasks, "
+                "try to implement more elaborate language and precise terminology from the beginning."
+            )
         ],
         quality=8.0,
         final_summary="The agent responded well initially. However, the improved output showed that there is room "

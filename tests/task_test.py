@@ -5,7 +5,6 @@ import json
 import os
 import time
 from functools import partial
-from typing import Tuple, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -248,7 +247,7 @@ def test_guardrail_type_error():
             return (True, x)
 
         @staticmethod
-        def guardrail_static_fn(x: TaskOutput) -> tuple[bool, Union[str, TaskOutput]]:
+        def guardrail_static_fn(x: TaskOutput) -> tuple[bool, str | TaskOutput]:
             return (True, x)
 
     obj = Object()
@@ -271,7 +270,7 @@ def test_guardrail_type_error():
         guardrail=Object.guardrail_static_fn,
     )
 
-    def error_fn(x: TaskOutput, y: bool) -> Tuple[bool, TaskOutput]:
+    def error_fn(x: TaskOutput, y: bool) -> tuple[bool, TaskOutput]:
         return (y, x)
 
     Task(
@@ -398,6 +397,7 @@ def test_output_json_hierarchical():
     assert result.json == '{"score": 4}'
     assert result.to_dict() == {"score": 4}
 
+
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_inject_date():
     reporter = Agent(
@@ -421,6 +421,7 @@ def test_inject_date():
     )
     result = crew.kickoff()
     assert "2025-05-21" in result.raw
+
 
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_inject_date_custom_format():
@@ -446,6 +447,7 @@ def test_inject_date_custom_format():
     )
     result = crew.kickoff()
     assert "May 21, 2025" in result.raw
+
 
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_no_inject_date():
@@ -587,9 +589,9 @@ def test_output_pydantic_to_another_task():
     crew = Crew(agents=[scorer], tasks=[task1, task2], verbose=True)
     result = crew.kickoff()
     pydantic_result = result.pydantic
-    assert isinstance(
-        pydantic_result, ScoreOutput
-    ), "Expected pydantic result to be of type ScoreOutput"
+    assert isinstance(pydantic_result, ScoreOutput), (
+        "Expected pydantic result to be of type ScoreOutput"
+    )
     assert pydantic_result.score == 5
 
 
@@ -1061,9 +1063,9 @@ def test_key():
     assert task.key == hash, "The key should be the hash of the description."
 
     task.interpolate_inputs_and_add_conversation_history(inputs={"topic": "AI"})
-    assert (
-        task.key == hash
-    ), "The key should be the hash of the non-interpolated description."
+    assert task.key == hash, (
+        "The key should be the hash of the non-interpolated description."
+    )
 
 
 def test_output_file_validation():

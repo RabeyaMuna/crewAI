@@ -1,7 +1,8 @@
 import inspect
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import yaml
 from dotenv import load_dotenv
@@ -119,8 +120,8 @@ def CrewBase(cls: T) -> T:
             }
 
         def _filter_functions(
-            self, functions: Dict[str, Callable], attribute: str
-        ) -> Dict[str, Callable]:
+            self, functions: dict[str, Callable], attribute: str
+        ) -> dict[str, Callable]:
             return {
                 name: func
                 for name, func in functions.items()
@@ -149,11 +150,11 @@ def CrewBase(cls: T) -> T:
         def _map_agent_variables(
             self,
             agent_name: str,
-            agent_info: Dict[str, Any],
-            llms: Dict[str, Callable],
-            tool_functions: Dict[str, Callable],
-            cache_handler_functions: Dict[str, Callable],
-            callbacks: Dict[str, Callable],
+            agent_info: dict[str, Any],
+            llms: dict[str, Callable],
+            tool_functions: dict[str, Callable],
+            cache_handler_functions: dict[str, Callable],
+            callbacks: dict[str, Callable],
         ) -> None:
             if llm := agent_info.get("llm"):
                 try:
@@ -168,9 +169,13 @@ def CrewBase(cls: T) -> T:
 
             if function_calling_llm := agent_info.get("function_calling_llm"):
                 try:
-                    self.agents_config[agent_name]["function_calling_llm"] = llms[function_calling_llm]()
+                    self.agents_config[agent_name]["function_calling_llm"] = llms[
+                        function_calling_llm
+                    ]()
                 except KeyError:
-                    self.agents_config[agent_name]["function_calling_llm"] = function_calling_llm
+                    self.agents_config[agent_name]["function_calling_llm"] = (
+                        function_calling_llm
+                    )
 
             if step_callback := agent_info.get("step_callback"):
                 self.agents_config[agent_name]["step_callback"] = callbacks[
@@ -210,13 +215,13 @@ def CrewBase(cls: T) -> T:
         def _map_task_variables(
             self,
             task_name: str,
-            task_info: Dict[str, Any],
-            agents: Dict[str, Callable],
-            tasks: Dict[str, Callable],
-            output_json_functions: Dict[str, Callable],
-            tool_functions: Dict[str, Callable],
-            callback_functions: Dict[str, Callable],
-            output_pydantic_functions: Dict[str, Callable],
+            task_info: dict[str, Any],
+            agents: dict[str, Callable],
+            tasks: dict[str, Callable],
+            output_json_functions: dict[str, Callable],
+            tool_functions: dict[str, Callable],
+            callback_functions: dict[str, Callable],
+            output_pydantic_functions: dict[str, Callable],
         ) -> None:
             if context_list := task_info.get("context"):
                 self.tasks_config[task_name]["context"] = [

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import PrivateAttr
 
@@ -16,7 +16,7 @@ class ShortTermMemory(Memory):
     MemoryItem instances.
     """
 
-    _memory_provider: Optional[str] = PrivateAttr()
+    _memory_provider: str | None = PrivateAttr()
 
     def __init__(self, crew=None, embedder_config=None, storage=None, path=None):
         if crew and hasattr(crew, "memory_config") and crew.memory_config is not None:
@@ -49,8 +49,8 @@ class ShortTermMemory(Memory):
     def save(
         self,
         value: Any,
-        metadata: Optional[Dict[str, Any]] = None,
-        agent: Optional[str] = None,
+        metadata: dict[str, Any] | None = None,
+        agent: str | None = None,
     ) -> None:
         item = ShortTermMemoryItem(data=value, metadata=metadata, agent=agent)
         if self._memory_provider == "mem0":

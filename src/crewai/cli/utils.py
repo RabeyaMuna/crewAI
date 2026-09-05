@@ -5,7 +5,7 @@ import sys
 from functools import reduce
 from inspect import getmro, isclass, isfunction, ismethod
 from pathlib import Path
-from typing import Any, Dict, List, get_type_hints
+from typing import Any, get_type_hints
 
 import click
 import tomli
@@ -77,7 +77,7 @@ def get_project_description(
 
 
 def _get_project_attribute(
-    pyproject_path: str, keys: List[str], require: bool
+    pyproject_path: str, keys: list[str], require: bool
 ) -> Any | None:
     """Get an attribute from the pyproject.toml file."""
     attribute = None
@@ -116,7 +116,7 @@ def _get_project_attribute(
     return attribute
 
 
-def _get_nested_value(data: Dict[str, Any], keys: List[str]) -> Any:
+def _get_nested_value(data: dict[str, Any], keys: list[str]) -> Any:
     return reduce(dict.__getitem__, keys, data)
 
 
@@ -250,8 +250,7 @@ def write_env_file(folder_path, env_vars):
     """
     env_file_path = folder_path / ".env"
     with open(env_file_path, "w") as file:
-        for key, value in env_vars.items():
-            file.write(f"{key}={value}\n")
+        file.writelines(f"{key}={value}\n" for key, value in env_vars.items())
 
 
 def get_crews(crew_path: str = "crew.py", require: bool = False) -> list[Crew]:
@@ -291,7 +290,7 @@ def get_crews(crew_path: str = "crew.py", require: bool = False) -> list[Crew]:
                 except (ImportError, AttributeError) as e:
                     if require:
                         console.print(
-                            f"Error importing crew from {crew_path}: {str(e)}",
+                            f"Error importing crew from {crew_path}: {e!s}",
                             style="bold red",
                         )
                         continue
@@ -305,7 +304,7 @@ def get_crews(crew_path: str = "crew.py", require: bool = False) -> list[Crew]:
     except Exception as e:
         if require:
             console.print(
-                f"Unexpected error while loading crew: {str(e)}", style="bold red"
+                f"Unexpected error while loading crew: {e!s}", style="bold red"
             )
             raise SystemExit
     return crew_instances
@@ -378,7 +377,7 @@ def extract_available_exports(dir_path: str = "src"):
         return available_exports
 
     except Exception as e:
-        console.print(f"[red]Error: Could not extract tool classes: {str(e)}[/red]")
+        console.print(f"[red]Error: Could not extract tool classes: {e!s}[/red]")
         console.print(
             "Please ensure your project contains valid tools (classes inheriting from BaseTool or functions with @tool decorator)."
         )
@@ -415,7 +414,7 @@ def _load_tools_from_init(init_file: Path) -> list[dict[str, Any]]:
         ]
 
     except Exception as e:
-        console.print(f"[red]Warning: Could not load {init_file}: {str(e)}[/red]")
+        console.print(f"[red]Warning: Could not load {init_file}: {e!s}[/red]")
         raise SystemExit(1)
 
     finally:

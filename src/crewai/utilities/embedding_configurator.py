@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 from chromadb import Documents, EmbeddingFunction, Embeddings
 from chromadb.api.types import validate_embedding_function
@@ -23,7 +23,7 @@ class EmbeddingConfigurator:
 
     def configure_embedder(
         self,
-        embedder_config: Optional[Dict[str, Any]] = None,
+        embedder_config: dict[str, Any] | None = None,
     ) -> EmbeddingFunction:
         """Configures and returns an embedding function based on the provided config."""
         if embedder_config is None:
@@ -206,7 +206,7 @@ class EmbeddingConfigurator:
                     return cast(Embeddings, embeddings)
                 except Exception as e:
                     print("Error during Watson embedding:", e)
-                    raise e
+                    raise
 
         return WatsonEmbeddingFunction()
 
@@ -218,7 +218,7 @@ class EmbeddingConfigurator:
                 validate_embedding_function(custom_embedder)
                 return custom_embedder
             except Exception as e:
-                raise ValueError(f"Invalid custom embedding function: {str(e)}")
+                raise ValueError(f"Invalid custom embedding function: {e!s}")
         elif callable(custom_embedder):
             try:
                 instance = custom_embedder()
@@ -229,7 +229,7 @@ class EmbeddingConfigurator:
                     "Custom embedder does not create an EmbeddingFunction instance"
                 )
             except Exception as e:
-                raise ValueError(f"Error instantiating custom embedder: {str(e)}")
+                raise ValueError(f"Error instantiating custom embedder: {e!s}")
         else:
             raise ValueError(
                 "Custom embedder must be an instance of `EmbeddingFunction` or a callable that creates one"

@@ -23,6 +23,14 @@ from .flow_events import (
     MethodExecutionFinishedEvent,
     MethodExecutionStartedEvent,
 )
+from .knowledge_events import (
+    KnowledgeQueryCompletedEvent,
+    KnowledgeQueryFailedEvent,
+    KnowledgeQueryStartedEvent,
+    KnowledgeRetrievalCompletedEvent,
+    KnowledgeRetrievalStartedEvent,
+    KnowledgeSearchQueryFailedEvent,
+)
 from .llm_events import (
     LLMCallCompletedEvent,
     LLMCallFailedEvent,
@@ -33,6 +41,11 @@ from .llm_guardrail_events import (
     LLMGuardrailCompletedEvent,
     LLMGuardrailStartedEvent,
 )
+from .reasoning_events import (
+    AgentReasoningCompletedEvent,
+    AgentReasoningFailedEvent,
+    AgentReasoningStartedEvent,
+)
 from .task_events import (
     TaskCompletedEvent,
     TaskFailedEvent,
@@ -42,19 +55,6 @@ from .tool_usage_events import (
     ToolUsageErrorEvent,
     ToolUsageFinishedEvent,
     ToolUsageStartedEvent,
-)
-from .reasoning_events import (
-    AgentReasoningStartedEvent,
-    AgentReasoningCompletedEvent,
-    AgentReasoningFailedEvent,
-)
-from .knowledge_events import (
-    KnowledgeRetrievalStartedEvent,
-    KnowledgeRetrievalCompletedEvent,
-    KnowledgeQueryStartedEvent,
-    KnowledgeQueryCompletedEvent,
-    KnowledgeQueryFailedEvent,
-    KnowledgeSearchQueryFailedEvent,
 )
 
 EventTypes = Union[

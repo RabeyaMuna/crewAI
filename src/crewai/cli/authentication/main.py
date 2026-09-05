@@ -1,6 +1,6 @@
 import time
 import webbrowser
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from rich.console import Console
@@ -28,7 +28,7 @@ class AuthenticationCommand:
 
         return self._poll_for_token(device_code_data)
 
-    def _get_device_code(self) -> Dict[str, Any]:
+    def _get_device_code(self) -> dict[str, Any]:
         """Get the device code to authenticate the user."""
 
         device_code_payload = {
@@ -42,13 +42,13 @@ class AuthenticationCommand:
         response.raise_for_status()
         return response.json()
 
-    def _display_auth_instructions(self, device_code_data: Dict[str, str]) -> None:
+    def _display_auth_instructions(self, device_code_data: dict[str, str]) -> None:
         """Display the authentication instructions to the user."""
         console.print("1. Navigate to: ", device_code_data["verification_uri_complete"])
         console.print("2. Enter the following code: ", device_code_data["user_code"])
         webbrowser.open(device_code_data["verification_uri_complete"])
 
-    def _poll_for_token(self, device_code_data: Dict[str, Any]) -> None:
+    def _poll_for_token(self, device_code_data: dict[str, Any]) -> None:
         """Poll the server for the token."""
         token_payload = {
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",

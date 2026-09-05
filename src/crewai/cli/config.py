@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -8,16 +7,16 @@ DEFAULT_CONFIG_PATH = Path.home() / ".config" / "crewai" / "settings.json"
 
 
 class Settings(BaseModel):
-    tool_repository_username: Optional[str] = Field(
+    tool_repository_username: str | None = Field(
         None, description="Username for interacting with the Tool Repository"
     )
-    tool_repository_password: Optional[str] = Field(
+    tool_repository_password: str | None = Field(
         None, description="Password for interacting with the Tool Repository"
     )
-    org_name: Optional[str] = Field(
+    org_name: str | None = Field(
         None, description="Name of the currently active organization"
     )
-    org_uuid: Optional[str] = Field(
+    org_uuid: str | None = Field(
         None, description="UUID of the currently active organization"
     )
     config_path: Path = Field(default=DEFAULT_CONFIG_PATH, exclude=True)

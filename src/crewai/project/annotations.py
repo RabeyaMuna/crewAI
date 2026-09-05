@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 from crewai import Crew
 from crewai.project.utils import memoize
@@ -117,9 +117,9 @@ def crew(func) -> Callable[..., Crew]:
 
             return wrapper
 
-        for _, callback in self._before_kickoff.items():
+        for callback in self._before_kickoff.values():
             crew.before_kickoff_callbacks.append(callback_wrapper(callback, self))
-        for _, callback in self._after_kickoff.items():
+        for callback in self._after_kickoff.values():
             crew.after_kickoff_callbacks.append(callback_wrapper(callback, self))
 
         return crew

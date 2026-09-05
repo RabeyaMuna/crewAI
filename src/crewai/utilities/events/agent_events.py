@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Union
+from collections.abc import Sequence
+from typing import Any
 
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.tools.base_tool import BaseTool
@@ -6,16 +7,13 @@ from crewai.tools.structured_tool import CrewStructuredTool
 
 from .base_events import BaseEvent
 
-if TYPE_CHECKING:
-    from crewai.agents.agent_builder.base_agent import BaseAgent
-
 
 class AgentExecutionStartedEvent(BaseEvent):
     """Event emitted when an agent starts executing a task"""
 
     agent: BaseAgent
     task: Any
-    tools: Optional[Sequence[Union[BaseTool, CrewStructuredTool]]]
+    tools: Sequence[BaseTool | CrewStructuredTool] | None
     task_prompt: str
     type: str = "agent_execution_started"
 
@@ -80,9 +78,9 @@ class AgentExecutionErrorEvent(BaseEvent):
 class LiteAgentExecutionStartedEvent(BaseEvent):
     """Event emitted when a LiteAgent starts executing"""
 
-    agent_info: Dict[str, Any]
-    tools: Optional[Sequence[Union[BaseTool, CrewStructuredTool]]]
-    messages: Union[str, List[Dict[str, str]]]
+    agent_info: dict[str, Any]
+    tools: Sequence[BaseTool | CrewStructuredTool] | None
+    messages: str | list[dict[str, str]]
     type: str = "lite_agent_execution_started"
 
     model_config = {"arbitrary_types_allowed": True}
@@ -91,7 +89,7 @@ class LiteAgentExecutionStartedEvent(BaseEvent):
 class LiteAgentExecutionCompletedEvent(BaseEvent):
     """Event emitted when a LiteAgent completes execution"""
 
-    agent_info: Dict[str, Any]
+    agent_info: dict[str, Any]
     output: str
     type: str = "lite_agent_execution_completed"
 
@@ -99,7 +97,7 @@ class LiteAgentExecutionCompletedEvent(BaseEvent):
 class LiteAgentExecutionErrorEvent(BaseEvent):
     """Event emitted when a LiteAgent encounters an error during execution"""
 
-    agent_info: Dict[str, Any]
+    agent_info: dict[str, Any]
     error: str
     type: str = "lite_agent_execution_error"
 
@@ -109,7 +107,7 @@ class AgentLogsStartedEvent(BaseEvent):
     """Event emitted when agent logs should be shown at start"""
 
     agent_role: str
-    task_description: Optional[str] = None
+    task_description: str | None = None
     verbose: bool = False
     type: str = "agent_logs_started"
 

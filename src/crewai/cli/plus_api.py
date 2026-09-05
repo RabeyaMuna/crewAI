@@ -1,5 +1,4 @@
 from os import getenv
-from typing import List, Optional
 from urllib.parse import urljoin
 
 import requests
@@ -51,9 +50,9 @@ class PlusAPI:
         handle: str,
         is_public: bool,
         version: str,
-        description: Optional[str],
+        description: str | None,
         encoded_file: str,
-        available_exports: Optional[List[str]] = None,
+        available_exports: list[str] | None = None,
     ):
         params = {
             "handle": handle,
@@ -108,7 +107,6 @@ class PlusAPI:
 
     def create_crew(self, payload) -> requests.Response:
         return self._make_request("POST", self.CREWS_RESOURCE, json=payload)
-    
+
     def get_organizations(self) -> requests.Response:
         return self._make_request("GET", self.ORGANIZATIONS_RESOURCE)
-    

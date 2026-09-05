@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Union
+from typing import Any
 
 from json_repair import repair_json
 
@@ -67,11 +67,11 @@ class CrewAgentParser:
     _i18n: I18N = I18N()
     agent: Any = None
 
-    def __init__(self, agent: Optional[Any] = None):
+    def __init__(self, agent: Any | None = None):
         self.agent = agent
 
     @staticmethod
-    def parse_text(text: str) -> Union[AgentAction, AgentFinish]:
+    def parse_text(text: str) -> AgentAction | AgentFinish:
         """
         Static method to parse text into an AgentAction or AgentFinish without needing to instantiate the class.
 
@@ -84,7 +84,7 @@ class CrewAgentParser:
         parser = CrewAgentParser()
         return parser.parse(text)
 
-    def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
+    def parse(self, text: str) -> AgentAction | AgentFinish:
         thought = self._extract_thought(text)
         includes_answer = FINAL_ANSWER_ACTION in text
         regex = (

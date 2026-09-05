@@ -1,5 +1,5 @@
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -14,14 +14,17 @@ def cleanup_telemetry():
     Telemetry._instance = None
 
 
-@pytest.mark.parametrize("env_var,value,expected_ready", [
-    ("OTEL_SDK_DISABLED", "true", False),
-    ("OTEL_SDK_DISABLED", "TRUE", False),
-    ("CREWAI_DISABLE_TELEMETRY", "true", False),
-    ("CREWAI_DISABLE_TELEMETRY", "TRUE", False),
-    ("OTEL_SDK_DISABLED", "false", True),
-    ("CREWAI_DISABLE_TELEMETRY", "false", True),
-])
+@pytest.mark.parametrize(
+    "env_var,value,expected_ready",
+    [
+        ("OTEL_SDK_DISABLED", "true", False),
+        ("OTEL_SDK_DISABLED", "TRUE", False),
+        ("CREWAI_DISABLE_TELEMETRY", "true", False),
+        ("CREWAI_DISABLE_TELEMETRY", "TRUE", False),
+        ("OTEL_SDK_DISABLED", "false", True),
+        ("CREWAI_DISABLE_TELEMETRY", "false", True),
+    ],
+)
 def test_telemetry_environment_variables(env_var, value, expected_ready):
     """Test telemetry state with different environment variable configurations."""
     with patch.dict(os.environ, {env_var: value}):
@@ -44,15 +47,15 @@ def test_telemetry_disable_after_singleton_creation():
         with patch("crewai.telemetry.telemetry.TracerProvider"):
             telemetry = Telemetry()
             assert telemetry.ready is True
-            
+
             mock_operation = MagicMock()
             telemetry._safe_telemetry_operation(mock_operation)
             mock_operation.assert_called_once()
-            
+
             mock_operation.reset_mock()
-            
-            os.environ['CREWAI_DISABLE_TELEMETRY'] = 'true'
-            
+
+            os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
+
             telemetry._safe_telemetry_operation(mock_operation)
             mock_operation.assert_not_called()
 
@@ -63,13 +66,13 @@ def test_telemetry_disable_with_multiple_instances():
         with patch("crewai.telemetry.telemetry.TracerProvider"):
             telemetry1 = Telemetry()
             assert telemetry1.ready is True
-            
-            os.environ['CREWAI_DISABLE_TELEMETRY'] = 'true'
-            
+
+            os.environ["CREWAI_DISABLE_TELEMETRY"] = "true"
+
             telemetry2 = Telemetry()
             assert telemetry2 is telemetry1
             assert telemetry2.ready is True
-            
+
             mock_operation = MagicMock()
             telemetry2._safe_telemetry_operation(mock_operation)
             mock_operation.assert_not_called()
@@ -81,14 +84,14 @@ def test_telemetry_otel_sdk_disabled_after_creation():
         with patch("crewai.telemetry.telemetry.TracerProvider"):
             telemetry = Telemetry()
             assert telemetry.ready is True
-            
+
             mock_operation = MagicMock()
             telemetry._safe_telemetry_operation(mock_operation)
             mock_operation.assert_called_once()
-            
+
             mock_operation.reset_mock()
-            
-            os.environ['OTEL_SDK_DISABLED'] = 'true'
-            
+
+            os.environ["OTEL_SDK_DISABLED"] = "true"
+
             telemetry._safe_telemetry_operation(mock_operation)
             mock_operation.assert_not_called()
