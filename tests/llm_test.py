@@ -10,11 +10,10 @@ from crewai.llm import CONTEXT_WINDOW_USAGE_RATIO, LLM
 from crewai.utilities.events import (
     LLMCallCompletedEvent,
     LLMStreamChunkEvent,
-    ToolUsageStartedEvent,
-    ToolUsageFinishedEvent,
     ToolUsageErrorEvent,
+    ToolUsageFinishedEvent,
+    ToolUsageStartedEvent,
 )
-
 from crewai.utilities.token_counter_callback import TokenCalcHandler
 
 
@@ -345,14 +344,13 @@ def test_context_window_validation():
     assert llm.get_context_window_size() == int(200000 * CONTEXT_WINDOW_USAGE_RATIO)
 
     # Test invalid window size
-    with pytest.raises(ValueError) as excinfo:
-        with patch.dict(
-            "crewai.llm.LLM_CONTEXT_WINDOW_SIZES",
-            {"test-model": 500},  # Below minimum
-            clear=True,
-        ):
-            llm = LLM(model="test-model")
-            llm.get_context_window_size()
+    with pytest.raises(ValueError) as excinfo, patch.dict(
+        "crewai.llm.LLM_CONTEXT_WINDOW_SIZES",
+        {"test-model": 500},  # Below minimum
+        clear=True,
+    ):
+        llm = LLM(model="test-model")
+        llm.get_context_window_size()
     assert "must be between 1024 and 2097152" in str(excinfo.value)
 
 
