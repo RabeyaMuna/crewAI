@@ -16,6 +16,11 @@ def process_config(
     Returns:
         Dict[str, Any]: The updated values dictionary.
     """
+    # Defensive type check - values should be a dictionary
+    # If not, return as-is to let Pydantic handle validation errors
+    if not isinstance(values, dict):
+        return values
+
     config = values.get("config", {})
     if not config:
         return values
