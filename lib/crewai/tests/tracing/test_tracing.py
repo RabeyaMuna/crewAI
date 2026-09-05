@@ -322,7 +322,7 @@ class TestTraceListenerSetup:
     def test_trace_listener_setup_correctly_for_flow(self):
         """Test that trace listener is set up correctly when enabled"""
 
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "OTEL_SDK_DISABLED": "false"}):
             class FlowExample(Flow):
                 @start()
                 def start(self):
