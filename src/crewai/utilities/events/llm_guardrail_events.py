@@ -12,7 +12,7 @@ class LLMGuardrailStartedEvent(BaseEvent):
     """
 
     type: str = "llm_guardrail_started"
-    guardrail: Union[str, Callable]
+    guardrail: str
     retry_count: int
 
     def __init__(self, **data):
