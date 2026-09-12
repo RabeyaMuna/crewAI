@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 from inspect import signature
-from typing import Any, Callable, Type, get_args, get_origin
+from typing import Any, Callable, List, Optional, Type, get_args, get_origin
 
 from pydantic import (
     BaseModel,
