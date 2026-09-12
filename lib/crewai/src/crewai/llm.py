@@ -518,6 +518,7 @@ class LLM(BaseLLM):
             "stream": self.stream,
             "tools": tools,
             "reasoning_effort": self.reasoning_effort,
+            "custom_llm_provider": self._get_custom_llm_provider() or "openai",
             **self.additional_params,
         }
 
@@ -1398,7 +1399,10 @@ class LLM(BaseLLM):
 
     def supports_stop_words(self) -> bool:
         try:
-            params = get_supported_openai_params(model=self.model)
+            provider = self._get_custom_llm_provider()
+            params = get_supported_openai_params(
+                model=self.model, custom_llm_provider=provider
+            )
             return params is not None and "stop" in params
         except Exception as e:
             logging.error(f"Failed to get supported params: {e!s}")
