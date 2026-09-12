@@ -1,13 +1,14 @@
 """Tests for Agent fallback LLM functionality."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+from litellm.exceptions import AuthenticationError, ContextWindowExceededError
 
 from crewai import Agent, Task
 from crewai.llm import LLM
-from crewai.utilities.agent_utils import get_llm_response
 from crewai.utilities import Printer
-from litellm.exceptions import AuthenticationError, ContextWindowExceededError
+from crewai.utilities.agent_utils import get_llm_response
 
 
 def test_agent_with_fallback_llms_basic():

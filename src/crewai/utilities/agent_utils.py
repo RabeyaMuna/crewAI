@@ -1,6 +1,9 @@
 import json
 import re
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from collections.abc import Callable, Sequence
+from typing import Any
+
+from rich.console import Console
 
 from crewai.agents.parser import (
     FINAL_ANSWER_AND_PARSABLE_ACTION_ERROR_MESSAGE,
@@ -9,6 +12,7 @@ from crewai.agents.parser import (
     CrewAgentParser,
     OutputParserException,
 )
+from crewai.cli.config import Settings
 from crewai.llm import LLM
 from crewai.llms.base_llm import BaseLLM
 from crewai.tools import BaseTool as CrewAITool
@@ -20,12 +24,10 @@ from crewai.utilities.errors import AgentRepositoryError
 from crewai.utilities.exceptions.context_window_exceeding_exception import (
     LLMContextLengthExceededException,
 )
-from rich.console import Console
-from crewai.cli.config import Settings
 
 console = Console()
 
-def parse_tools(tools: List[BaseTool]) -> List[CrewStructuredTool]:
+def parse_tools(tools: list[BaseTool]) -> list[CrewStructuredTool]:
     """Parse tools to be used for the task."""
     tools_list = []
 
@@ -33,18 +35,18 @@ def parse_tools(tools: List[BaseTool]) -> List[CrewStructuredTool]:
         if isinstance(tool, CrewAITool):
             tools_list.append(tool.to_structured_tool())
         else:
-            raise ValueError("Tool is not a CrewStructuredTool or BaseTool")
+            raise TypeError("Tool is not a CrewStructuredTool or BaseTool")
 
     return tools_list
 
 
-def get_tool_names(tools: Sequence[Union[CrewStructuredTool, BaseTool]]) -> str:
+def get_tool_names(tools: Sequence[CrewStructuredTool | BaseTool]) -> str:
     """Get the names of the tools."""
     return ", ".join([t.name for t in tools])
 
 
 def render_text_description_and_args(
-    tools: Sequence[Union[CrewStructuredTool, BaseTool]],
+    tools: Sequence[CrewStructuredTool | BaseTool],
 ) -> str:
     """Render the tool name, description, and args in plain text.
 
@@ -65,13 +67,13 @@ def has_reached_max_iterations(iterations: int, max_iterations: int) -> bool:
 
 
 def handle_max_iterations_exceeded(
-    formatted_answer: Union[AgentAction, AgentFinish, None],
+    formatted_answer: AgentAction | AgentFinish | None,
     printer: Printer,
     i18n: I18N,
-    messages: List[Dict[str, str]],
-    llm: Union[LLM, BaseLLM],
-    callbacks: List[Any],
-) -> Union[AgentAction, AgentFinish]:
+    messages: list[dict[str, str]],
+    llm: LLM | BaseLLM,
+    callbacks: list[Any],
+) -> AgentAction | AgentFinish:
     """
     Handles the case when the maximum number of iterations is exceeded.
     Performs one more LLM call to get the final answer.
@@ -114,16 +116,16 @@ def handle_max_iterations_exceeded(
     return formatted_answer
 
 
-def format_message_for_llm(prompt: str, role: str = "user") -> Dict[str, str]:
+def format_message_for_llm(prompt: str, role: str = "user") -> dict[str, str]:
     prompt = prompt.rstrip()
     return {"role": role, "content": prompt}
 
 
-def format_answer(answer: str) -> Union[AgentAction, AgentFinish]:
+def format_answer(answer: str) -> AgentAction | AgentFinish:
     """Format a response from the LLM into an AgentAction or AgentFinish."""
     try:
         return CrewAgentParser.parse_text(answer)
-    except Exception:
+    except Exception:  # noqa: BLE001
         # If parsing fails, return a default AgentFinish
         return AgentFinish(
             thought="Failed to parse LLM response",
@@ -133,7 +135,7 @@ def format_answer(answer: str) -> Union[AgentAction, AgentFinish]:
 
 
 def enforce_rpm_limit(
-    request_within_rpm_limit: Optional[Callable[[], bool]] = None,
+    request_within_rpm_limit: Callable[[], bool] | None = None,
 ) -> None:
     """Enforce the requests per minute (RPM) limit if applicable."""
     if request_within_rpm_limit:
@@ -141,11 +143,11 @@ def enforce_rpm_limit(
 
 
 def get_llm_response(
-    llm: Union[LLM, BaseLLM],
-    messages: List[Dict[str, str]],
-    callbacks: List[Any],
+    llm: LLM | BaseLLM,
+    messages: list[dict[str, str]],
+    callbacks: list[Any],
     printer: Printer,
-    fallback_llms: Optional[List[Union[LLM, BaseLLM]]] = None,
+    fallback_llms: list[LLM | BaseLLM] | None = None,
 ) -> str:
     """Call the LLM and return the response, handling any invalid responses and trying fallbacks if available."""
     llms_to_try = [llm]
@@ -180,7 +182,7 @@ def get_llm_response(
                 error_str = str(e).lower()
                 if any(term in error_str for term in ["authentication", "api key", "unauthorized", "forbidden"]):
                     printer.print(content="Authentication error detected, skipping remaining fallbacks", color="red")
-                    raise e
+                    raise
             
             if i < len(llms_to_try) - 1:
                 printer.print(content=f"Trying fallback LLM {i+1}...", color="yellow")
@@ -192,7 +194,7 @@ def get_llm_response(
 
 def process_llm_response(
     answer: str, use_stop_words: bool
-) -> Union[AgentAction, AgentFinish]:
+) -> AgentAction | AgentFinish:
     """Process the LLM response and format it into an AgentAction or AgentFinish."""
     if not use_stop_words:
         try:
@@ -208,10 +210,10 @@ def process_llm_response(
 def handle_agent_action_core(
     formatted_answer: AgentAction,
     tool_result: ToolResult,
-    messages: Optional[List[Dict[str, str]]] = None,
-    step_callback: Optional[Callable] = None,
-    show_logs: Optional[Callable] = None,
-) -> Union[AgentAction, AgentFinish]:
+    messages: list[dict[str, str]] | None = None,
+    step_callback: Callable | None = None,
+    show_logs: Callable | None = None,
+) -> AgentAction | AgentFinish:
     """Core logic for handling agent actions and tool results.
 
     Args:
@@ -262,10 +264,10 @@ def handle_unknown_error(printer: Any, exception: Exception) -> None:
 
 def handle_output_parser_exception(
     e: OutputParserException,
-    messages: List[Dict[str, str]],
+    messages: list[dict[str, str]],
     iterations: int,
     log_error_after: int = 3,
-    printer: Optional[Any] = None,
+    printer: Any | None = None,
 ) -> AgentAction:
     """Handle OutputParserException by updating messages and formatted_answer.
 
@@ -314,9 +316,9 @@ def is_context_length_exceeded(exception: Exception) -> bool:
 def handle_context_length(
     respect_context_window: bool,
     printer: Any,
-    messages: List[Dict[str, str]],
+    messages: list[dict[str, str]],
     llm: Any,
-    callbacks: List[Any],
+    callbacks: list[Any],
     i18n: Any,
 ) -> None:
     """Handle context length exceeded by either summarizing or raising an error.
@@ -346,9 +348,9 @@ def handle_context_length(
 
 
 def summarize_messages(
-    messages: List[Dict[str, str]],
+    messages: list[dict[str, str]],
     llm: Any,
-    callbacks: List[Any],
+    callbacks: list[Any],
     i18n: Any,
 ) -> None:
     """Summarize messages to fit within context window.
@@ -401,8 +403,8 @@ def summarize_messages(
 def show_agent_logs(
     printer: Printer,
     agent_role: str,
-    formatted_answer: Optional[Union[AgentAction, AgentFinish]] = None,
-    task_description: Optional[str] = None,
+    formatted_answer: AgentAction | AgentFinish | None = None,
+    task_description: str | None = None,
     verbose: bool = False,
 ) -> None:
     """Show agent logs for both start and execution states.
@@ -467,8 +469,8 @@ def _print_current_organization():
     else:
         console.print("No organization currently set. We recommend setting one before using: `crewai org switch <org_id>` command.", style="yellow")
 
-def load_agent_from_repository(from_repository: str) -> Dict[str, Any]:
-    attributes: Dict[str, Any] = {}
+def load_agent_from_repository(from_repository: str) -> dict[str, Any]:
+    attributes: dict[str, Any] = {}
     if from_repository:
         import importlib
 
