@@ -518,6 +518,7 @@ class LLM(BaseLLM):
             "stream": self.stream,
             "tools": tools,
             "reasoning_effort": self.reasoning_effort,
+            "custom_llm_provider": self._get_custom_llm_provider(),
             **self.additional_params,
         }
 

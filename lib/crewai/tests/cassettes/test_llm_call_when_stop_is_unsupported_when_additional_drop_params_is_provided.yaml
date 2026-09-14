@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"messages": [{"role": "user", "content": "What is the capital of France?"}],
-      "model": "o1-mini", "stop": ["stop"]}'
+      "model": "openai/o1-mini", "stop": ["stop"]}'
     headers:
       accept:
       - application/json
@@ -10,7 +10,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '115'
+      - '122'
       content-type:
       - application/json
       cookie:
@@ -99,7 +99,7 @@ interactions:
       message: Bad Request
 - request:
     body: '{"messages": [{"role": "user", "content": "What is the capital of France?"}],
-      "model": "o1-mini"}'
+      "model": "openai/o1-mini"}'
     headers:
       accept:
       - application/json
@@ -108,7 +108,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '97'
+      - '104'
       content-type:
       - application/json
       cookie:
