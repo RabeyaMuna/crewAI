@@ -71,12 +71,8 @@ def test_security_config_from_dict():
         "fingerprint": fingerprint_dict
     }
 
-    # Create config manually since from_dict has a specific implementation
-    config = SecurityConfig()
-
-    # Set the fingerprint manually from the dict
-    fingerprint = Fingerprint.from_dict(fingerprint_dict)
-    config.fingerprint = fingerprint
+    # Create config using from_dict
+    config = SecurityConfig.from_dict(config_dict)
 
     # Check fingerprint was properly set
     assert config.fingerprint is not None

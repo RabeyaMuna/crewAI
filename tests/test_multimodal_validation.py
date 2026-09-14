@@ -43,4 +43,6 @@ def test_multimodal_agent_with_image_url():
         agent=expert_analyst
     )
 
+    # Manual test: uncomment the following lines to run the test
     crew = Crew(agents=[expert_analyst], tasks=[inspection_task])
+    crew.kickoff()
