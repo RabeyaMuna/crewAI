@@ -380,7 +380,7 @@ class EventListener(BaseEventListener):
         def on_llm_guardrail_started(source, event: LLMGuardrailStartedEvent):
             guardrail_name = (
                 event.guardrail[:50] + "..."
-                if len(event.guardrail) > 50
+                if isinstance(event.guardrail, str) and len(event.guardrail) > 50
                 else event.guardrail
             )
 
