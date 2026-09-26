@@ -119,7 +119,7 @@ class TestTraceListenerSetup:
     def test_trace_listener_collects_crew_events(self):
         """Test that trace listener properly collects events from crew execution"""
 
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "CREWAI_DISABLE_TRACKING": "false", "OTEL_SDK_DISABLED": "false"}):
             agent = Agent(
                 role="Test Agent",
                 goal="Test goal",
@@ -148,7 +148,7 @@ class TestTraceListenerSetup:
     def test_batch_manager_finalizes_batch_clears_buffer(self):
         """Test that batch manager properly finalizes batch and clears buffer"""
 
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "CREWAI_DISABLE_TRACKING": "false", "OTEL_SDK_DISABLED": "false"}):
             agent = Agent(
                 role="Test Agent",
                 goal="Test goal",
@@ -206,7 +206,7 @@ class TestTraceListenerSetup:
     def test_events_collection_batch_manager(self, mock_plus_api_calls):
         """Test that trace listener properly collects events from crew execution"""
 
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "CREWAI_DISABLE_TRACKING": "false", "OTEL_SDK_DISABLED": "false"}):
             agent = Agent(
                 role="Test Agent",
                 goal="Test goal",
@@ -300,7 +300,7 @@ class TestTraceListenerSetup:
     def test_trace_listener_setup_correctly_for_crew(self):
         """Test that trace listener is set up correctly when enabled"""
 
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "CREWAI_DISABLE_TRACKING": "false", "OTEL_SDK_DISABLED": "false"}):
             agent = Agent(
                 role="Test Agent",
                 goal="Test goal",
@@ -322,7 +322,7 @@ class TestTraceListenerSetup:
     def test_trace_listener_setup_correctly_for_flow(self):
         """Test that trace listener is set up correctly when enabled"""
 
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "CREWAI_DISABLE_TRACKING": "false", "OTEL_SDK_DISABLED": "false"}):
             class FlowExample(Flow):
                 @start()
                 def start(self):
@@ -371,7 +371,7 @@ class TestTraceListenerSetup:
     @pytest.mark.vcr(filter_headers=["authorization"])
     def test_trace_listener_with_authenticated_user(self):
         """Test that trace listener properly handles authenticated batches"""
-        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true"}):
+        with patch.dict(os.environ, {"CREWAI_TRACING_ENABLED": "true", "CREWAI_DISABLE_TELEMETRY": "false", "CREWAI_DISABLE_TRACKING": "false", "OTEL_SDK_DISABLED": "false"}):
             agent = Agent(
                 role="Test Agent",
                 goal="Test goal",
