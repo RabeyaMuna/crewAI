@@ -67,7 +67,7 @@ def test_security_config_from_dict():
     }
 
     # Create a config dict with just the fingerprint
-    config_dict = {
+    _config_dict = {
         "fingerprint": fingerprint_dict
     }
 
