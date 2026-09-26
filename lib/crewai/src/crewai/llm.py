@@ -496,7 +496,7 @@ class LLM(BaseLLM):
 
         # --- 2) Prepare the parameters for the completion call
         params = {
-            "model": self.model,
+            "model": f"openai/{self.model}" if "/" not in self.model else self.model,
             "messages": formatted_messages,
             "timeout": self.timeout,
             "temperature": self.temperature,
