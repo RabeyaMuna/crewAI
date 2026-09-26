@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional
 
 from crewai.utilities.events.base_events import BaseEvent
 
@@ -12,7 +12,7 @@ class LLMGuardrailStartedEvent(BaseEvent):
     """
 
     type: str = "llm_guardrail_started"
-    guardrail: Union[str, Callable]
+    guardrail: str
     retry_count: int
 
     def __init__(self, **data):
