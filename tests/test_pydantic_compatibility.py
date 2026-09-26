@@ -2,13 +2,12 @@
 
 import pytest
 from unittest.mock import patch, MagicMock
-from pydantic import BaseModel
 
 from crewai.flow.flow_trackable import FlowTrackable
 from crewai.flow import Flow
 
 
-class TestFlowTrackable(BaseModel, FlowTrackable):
+class TestFlowTrackable(FlowTrackable):
     """Test class that inherits from FlowTrackable for testing."""
     name: str = "test"
 
@@ -105,7 +104,7 @@ def test_pydantic_model_validator_signature():
     params = list(sig.parameters.keys())
     assert params == ['self'], f"Expected ['self'], got {params}"
     
-    assert sig.return_annotation == "FlowTrackable"
+    assert sig.return_annotation == inspect.Parameter.empty or str(sig.return_annotation) == "typing_extensions.Self"
 
 
 def test_crew_instantiation_with_flow_trackable():
