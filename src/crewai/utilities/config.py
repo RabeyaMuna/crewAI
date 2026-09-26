@@ -16,6 +16,12 @@ def process_config(
     Returns:
         Dict[str, Any]: The updated values dictionary.
     """
+    # Validate that values is a dictionary before processing
+    if not isinstance(values, dict):
+        raise TypeError(
+            f"process_config expects a dictionary, got {type(values).__name__}: {values}"
+        )
+
     config = values.get("config", {})
     if not config:
         return values

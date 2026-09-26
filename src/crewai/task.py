@@ -228,8 +228,8 @@ class Task(BaseModel):
     _original_output_file: Optional[str] = PrivateAttr(default=None)
     _thread: Optional[threading.Thread] = PrivateAttr(default=None)
 
-    @model_validator(mode="before")
     @classmethod
+    @model_validator(mode="before")
     def process_model_config(cls, values):
         return process_config(values, cls)
 
