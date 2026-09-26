@@ -28,3 +28,8 @@ plan.md
 conceptual_plan.md
 build_image
 chromadb-*.lock
+# Shell redirection artifacts
+=[0-9]*
+>[0-9]*
+*.tmp
+*.log
