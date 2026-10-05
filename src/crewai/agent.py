@@ -538,7 +538,7 @@ class Agent(BaseAgent):
         )["output"]
 
     def create_agent_executor(
-        self, tools: Optional[List[BaseTool]] = None, task=None
+        self, tools: Optional[List[BaseTool]] = None, task: Optional[Any] = None
     ) -> None:
         """Create an agent executor for the agent.
 
@@ -657,7 +657,7 @@ class Agent(BaseAgent):
 
         return description
 
-    def _inject_date_to_task(self, task):
+    def _inject_date_to_task(self, task: Any):
         """Inject the current date into the task description if inject_date is enabled."""
         if self.inject_date:
             from datetime import datetime

@@ -380,8 +380,8 @@ class LLM(BaseLLM):
         self.batch_mode = batch_mode
         self.batch_size = batch_size or 10
         self.batch_timeout = batch_timeout
-        self._batch_requests = []
-        self._current_batch_job = None
+        self._batch_requests: List[BatchCreateJobRequest] = []
+        self._current_batch_job: Optional[str] = None
 
         litellm.drop_params = True
 
@@ -522,7 +522,8 @@ class LLM(BaseLLM):
         genai.configure(api_key=self.api_key)
         
         start_time = time.time()
-        while time.time() - start_time < self.batch_timeout:
+        batch_timeout = self.batch_timeout or 300
+        while time.time() - start_time < batch_timeout:
             batch_job = genai.get_batch_job(job_name)
             
             if batch_job.state in ["JOB_STATE_SUCCEEDED", "JOB_STATE_FAILED", "JOB_STATE_CANCELLED"]:
@@ -530,7 +531,7 @@ class LLM(BaseLLM):
             
             time.sleep(5)
         
-        raise TimeoutError(f"Batch job {job_name} did not complete within {self.batch_timeout} seconds")
+        raise TimeoutError(f"Batch job {job_name} did not complete within {batch_timeout} seconds")
 
     def _retrieve_batch_results(self, job_name: str) -> List[str]:
         """Retrieve results from a completed batch job."""
