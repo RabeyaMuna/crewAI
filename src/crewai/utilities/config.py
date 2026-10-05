@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any, Dict, Type
 
 from pydantic import BaseModel
@@ -16,6 +17,9 @@ def process_config(
     Returns:
         Dict[str, Any]: The updated values dictionary.
     """
+    if not isinstance(values, Mapping):
+        return values
+
     config = values.get("config", {})
     if not config:
         return values
