@@ -87,7 +87,10 @@ class FilteredStream(io.TextIOBase):
 
     def flush(self):
         with self._lock:
-            return self._original_stream.flush()
+            try:
+                return self._original_stream.flush()
+            except (ValueError, OSError):
+                return None
 
     def __getattr__(self, name):
         """Delegate attribute access to the wrapped original stream.
