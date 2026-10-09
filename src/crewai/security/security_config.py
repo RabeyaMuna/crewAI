@@ -10,7 +10,7 @@ The SecurityConfig class is the primary interface for managing security settings
 in CrewAI applications.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -84,7 +84,7 @@ class SecurityConfig(BaseModel):
                 values['fingerprint'] = Fingerprint.generate(seed=values['fingerprint'])
         return values
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the security config to a dictionary.
 
@@ -97,7 +97,7 @@ class SecurityConfig(BaseModel):
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'SecurityConfig':
+    def from_dict(cls, data: dict[str, Any]) -> 'SecurityConfig':
         """
         Create a SecurityConfig from a dictionary.
 
