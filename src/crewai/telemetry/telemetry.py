@@ -23,15 +23,6 @@ def suppress_warnings():
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore")
         yield
-
-
-from opentelemetry import trace  # noqa: E402
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-    OTLPSpanExporter,  # noqa: E402
-)
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource  # noqa: E402
-from opentelemetry.sdk.trace import TracerProvider  # noqa: E402
-from opentelemetry.sdk.trace.export import (  # noqa: E402
     BatchSpanProcessor,
     SpanExportResult,
 )
