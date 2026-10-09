@@ -29,12 +29,11 @@ def test_telemetry_environment_variables(env_var, value, expected_ready):
 def test_telemetry_enabled_by_default():
     """Test that telemetry is enabled by default."""
     with patch.dict(os.environ, {}, clear=True):
+from opentelemetry import trace
+
         with patch("crewai.telemetry.telemetry.TracerProvider"):
             telemetry = Telemetry()
             assert telemetry.ready is True
-
-
-from opentelemetry import trace
 
 
 @patch("crewai.telemetry.telemetry.logger.error")
