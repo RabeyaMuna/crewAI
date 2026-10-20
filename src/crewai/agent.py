@@ -1,7 +1,18 @@
 import shutil
 import subprocess
 import time
-from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
 from pydantic import Field, InstanceOf, PrivateAttr, model_validator
 
@@ -80,8 +91,12 @@ class Agent(BaseAgent):
         default=None,
         description="Maximum execution time for an agent to execute a task",
     )
-    agent_ops_agent_name: str = None  # type: ignore # Incompatible types in assignment (expression has type "None", variable has type "str")
-    agent_ops_agent_id: str = None  # type: ignore # Incompatible types in assignment (expression has type "None", variable has type "str")
+    agent_ops_agent_name: Optional[str] = Field(
+        default=None, description="Agent name for agent ops"
+    )
+    agent_ops_agent_id: Optional[str] = Field(
+        default=None, description="Agent ID for agent ops"
+    )
     step_callback: Optional[Any] = Field(
         default=None,
         description="Callback to be executed after each step of the agent execution.",
@@ -162,7 +177,7 @@ class Agent(BaseAgent):
     )
     guardrail: Optional[Union[Callable[[Any], Tuple[bool, Any]], str]] = Field(
         default=None,
-        description="Function or string description of a guardrail to validate agent output"
+        description="Function or string description of a guardrail to validate agent output",
     )
     guardrail_max_retries: int = Field(
         default=3, description="Maximum number of retries when guardrail fails"
@@ -279,7 +294,7 @@ class Agent(BaseAgent):
         self._inject_date_to_task(task)
 
         if self.tools_handler:
-            self.tools_handler.last_used_tool = {}  # type: ignore # Incompatible types in assignment (expression has type "dict[Never, Never]", variable has type "ToolCalling")
+            self.tools_handler.last_used_tool = None  # type: ignore # Reset to None instead of empty dict
 
         task_prompt = task.prompt()
 
@@ -476,9 +491,10 @@ class Agent(BaseAgent):
         # If there was any tool in self.tools_results that had result_as_answer
         # set to True, return the results of the last tool that had
         # result_as_answer set to True
-        for tool_result in self.tools_results:  # type: ignore # Item "None" of "list[Any] | None" has no attribute "__iter__" (not iterable)
-            if tool_result.get("result_as_answer", False):
-                result = tool_result["result"]
+        if self.tools_results:
+            for tool_result in self.tools_results:
+                if tool_result.get("result_as_answer", False):
+                    result = tool_result["result"]
         crewai_event_bus.emit(
             self,
             event=AgentExecutionCompletedEvent(agent=self, task=task, output=result),
@@ -799,7 +815,7 @@ class Agent(BaseAgent):
             LiteAgentOutput: The result of the agent execution.
         """
         lite_agent = LiteAgent(
-            id=self.id,
+            id=self.id if self.id is not None else str(uuid.uuid4()),
             role=self.role,
             goal=self.goal,
             backstory=self.backstory,
@@ -838,6 +854,7 @@ class Agent(BaseAgent):
             LiteAgentOutput: The result of the agent execution.
         """
         lite_agent = LiteAgent(
+            id=self.id if self.id is not None else str(uuid.uuid4()),
             role=self.role,
             goal=self.goal,
             backstory=self.backstory,

@@ -379,8 +379,8 @@ class LLM(BaseLLM):
         self.stream = stream
         self.batch_mode = batch_mode
         self.batch_size = batch_size or 10
-        self.batch_timeout = batch_timeout
-        self._batch_requests = []
+        self.batch_timeout: int = batch_timeout or 300
+        self._batch_requests: List[Dict[str, Any]] = []
         self._current_batch_job = None
 
         litellm.drop_params = True
@@ -389,9 +389,9 @@ class LLM(BaseLLM):
         if stop is None:
             self.stop: List[str] = []
         elif isinstance(stop, str):
-            self.stop = [stop]
+            self.stop: List[str] = [stop]
         else:
-            self.stop = stop
+            self.stop: List[str] = stop
 
         self.set_callbacks(callbacks)
         self.set_env_callbacks()
@@ -584,7 +584,7 @@ class LLM(BaseLLM):
         full_response = ""
         last_chunk = None
         chunk_count = 0
-        usage_info = None
+        usage_info: Optional[Dict[str, Any]] = None
         tool_calls = None
 
         accumulated_tool_args: DefaultDict[int, AccumulatedToolArgs] = defaultdict(
@@ -821,7 +821,7 @@ class LLM(BaseLLM):
             current_tool_accumulator = accumulated_tool_args[tool_call.index]
 
             if tool_call.function.name:
-                current_tool_accumulator.function.name = tool_call.function.name
+                current_tool_accumulator.function.name = tool_call.function.name or ""
 
             if tool_call.function.arguments:
                 current_tool_accumulator.function.arguments += (
@@ -1348,6 +1348,8 @@ class LLM(BaseLLM):
 
         # Validate all context window sizes
         for key, value in LLM_CONTEXT_WINDOW_SIZES.items():
+            if not isinstance(value, (int, float)):
+                raise TypeError(f"Context window for {key} must be a number, got {type(value).__name__}")
             if value < MIN_CONTEXT or value > MAX_CONTEXT:
                 raise ValueError(
                     f"Context window for {key} must be between {MIN_CONTEXT} and {MAX_CONTEXT}"
