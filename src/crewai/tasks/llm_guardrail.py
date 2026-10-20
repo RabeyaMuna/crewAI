@@ -1,10 +1,9 @@
-from typing import Any, Optional, Tuple
+from typing import Tuple
 
 from pydantic import BaseModel, Field
 
 from crewai.agent import Agent, LiteAgentOutput
 from crewai.llm import LLM
-from crewai.task import Task
 from crewai.tasks.task_output import TaskOutput
 
 
@@ -88,5 +87,5 @@ class LLMGuardrail:
                 return True, task_output.raw
             else:
                 return False, result.pydantic.feedback
-        except Exception as e:
+        except Exception as e:  # noqa: E722
             return False, f"Error while validating the task output: {str(e)}"

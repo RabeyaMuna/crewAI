@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import Field, PrivateAttr
 
@@ -104,7 +104,7 @@ class LangGraphAgentAdapter(BaseAgentAdapter):
                 "error", f"Failed to import LangGraph dependencies: {str(e)}"
             )
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: E722
             self._logger.log("error", f"Error setting up LangGraph agent: {str(e)}")
             raise
 
