@@ -231,6 +231,8 @@ class Task(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def process_model_config(cls, values):
+        if not isinstance(values, dict):
+            return values
         return process_config(values, cls)
 
     @model_validator(mode="after")
@@ -321,6 +323,8 @@ class Task(BaseModel):
     def set_attributes_based_on_config(self) -> "Task":
         """Set attributes based on the agent configuration."""
         if self.config:
+            if not isinstance(self.config, dict):
+                raise ValueError("config must be a dictionary")
             for key, value in self.config.items():
                 setattr(self, key, value)
         return self
