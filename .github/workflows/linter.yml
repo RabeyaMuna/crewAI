@@ -1,16 +1,18 @@
 name: Lint
 
-on: [pull_request]
+on:
+- push
+- workflow_dispatch
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install Requirements
-        run: |
-          pip install ruff
+    - name: Install Requirements
+      run: |
+        pip install ruff
 
-      - name: Run Ruff Linter
-        run: ruff check
+    - name: Run Ruff Linter
+      run: ruff check
