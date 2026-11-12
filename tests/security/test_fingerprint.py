@@ -223,7 +223,7 @@ def test_invalid_uuid_str():
 
     # But this will raise an exception when we try to access the uuid property
     with pytest.raises(ValueError):
-        uuid_obj = fingerprint.uuid
+        _ = fingerprint.uuid
 
 
 def test_fingerprint_metadata_mutation():
