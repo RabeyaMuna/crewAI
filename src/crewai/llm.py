@@ -7,19 +7,14 @@ import time
 import warnings
 from collections import defaultdict
 from contextlib import contextmanager
+from datetime import datetime
 from typing import (
     Any,
-    DefaultDict,
-    Dict,
-    List,
     Literal,
-    Optional,
-    Type,
     TypedDict,
-    Union,
     cast,
 )
-from datetime import datetime
+
 from dotenv import load_dotenv
 from litellm.types.utils import ChatCompletionDeltaToolCall
 from pydantic import BaseModel, Field
@@ -42,9 +37,9 @@ from crewai.utilities.events.llm_events import (
     LLMStreamChunkEvent,
 )
 from crewai.utilities.events.tool_usage_events import (
-    ToolUsageStartedEvent,
-    ToolUsageFinishedEvent,
     ToolUsageErrorEvent,
+    ToolUsageFinishedEvent,
+    ToolUsageStartedEvent,
 )
 
 with warnings.catch_warnings():
@@ -304,14 +299,14 @@ def suppress_warnings():
 
 
 class Delta(TypedDict):
-    content: Optional[str]
-    role: Optional[str]
+    content: str | None
+    role: str | None
 
 
 class StreamingChoices(TypedDict):
     delta: Delta
     index: int
-    finish_reason: Optional[str]
+    finish_reason: str | None
 
 
 class FunctionArgs(BaseModel):
@@ -327,30 +322,30 @@ class LLM(BaseLLM):
     def __init__(
         self,
         model: str,
-        timeout: Optional[Union[float, int]] = None,
-        temperature: Optional[float] = None,
-        top_p: Optional[float] = None,
-        n: Optional[int] = None,
-        stop: Optional[Union[str, List[str]]] = None,
-        max_completion_tokens: Optional[int] = None,
-        max_tokens: Optional[int] = None,
-        presence_penalty: Optional[float] = None,
-        frequency_penalty: Optional[float] = None,
-        logit_bias: Optional[Dict[int, float]] = None,
-        response_format: Optional[Type[BaseModel]] = None,
-        seed: Optional[int] = None,
-        logprobs: Optional[int] = None,
-        top_logprobs: Optional[int] = None,
-        base_url: Optional[str] = None,
-        api_base: Optional[str] = None,
-        api_version: Optional[str] = None,
-        api_key: Optional[str] = None,
-        callbacks: List[Any] = [],
-        reasoning_effort: Optional[Literal["none", "low", "medium", "high"]] = None,
+        timeout: float | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        n: int | None = None,
+        stop: str | list[str] | None = None,
+        max_completion_tokens: int | None = None,
+        max_tokens: int | None = None,
+        presence_penalty: float | None = None,
+        frequency_penalty: float | None = None,
+        logit_bias: dict[int, float] | None = None,
+        response_format: type[BaseModel] | None = None,
+        seed: int | None = None,
+        logprobs: int | None = None,
+        top_logprobs: int | None = None,
+        base_url: str | None = None,
+        api_base: str | None = None,
+        api_version: str | None = None,
+        api_key: str | None = None,
+        callbacks: list[Any] = [],
+        reasoning_effort: Literal["none", "low", "medium", "high"] | None = None,
         stream: bool = False,
         batch_mode: bool = False,
-        batch_size: Optional[int] = None,
-        batch_timeout: Optional[int] = 300,
+        batch_size: int | None = None,
+        batch_timeout: int | None = 300,
         **kwargs,
     ):
         self.model = model
@@ -380,14 +375,14 @@ class LLM(BaseLLM):
         self.batch_mode = batch_mode
         self.batch_size = batch_size or 10
         self.batch_timeout = batch_timeout
-        self._batch_requests = []
-        self._current_batch_job = None
+        self._batch_requests: list[dict[str, Any]] = []
+        self._current_batch_job: str | None = None
 
         litellm.drop_params = True
 
         # Normalize self.stop to always be a List[str]
         if stop is None:
-            self.stop: List[str] = []
+            self.stop: list[str] = []
         elif isinstance(stop, str):
             self.stop = [stop]
         else:
@@ -414,9 +409,9 @@ class LLM(BaseLLM):
 
     def _prepare_completion_params(
         self,
-        messages: Union[str, List[Dict[str, str]]],
-        tools: Optional[List[dict]] = None,
-    ) -> Dict[str, Any]:
+        messages: str | list[dict[str, str]],
+        tools: list[dict] | None = None,
+    ) -> dict[str, Any]:
         """Prepare parameters for the completion call.
 
         Args:
@@ -465,16 +460,16 @@ class LLM(BaseLLM):
 
     def _prepare_batch_request(
         self, 
-        messages: List[Dict[str, str]], 
-        tools: Optional[List[dict]] = None
-    ) -> Dict[str, Any]:
+        messages: list[dict[str, str]], 
+        tools: list[dict] | None = None
+    ) -> dict[str, Any]:
         """Prepare a single request for batch processing."""
         if not self._is_gemini_model():
             raise ValueError("Batch mode is only supported for Gemini models")
         
         formatted_messages = self._format_messages_for_provider(messages)
         
-        request = {
+        request: dict[str, Any] = {
             "contents": [],
             "generationConfig": {
                 "temperature": self.temperature,
@@ -496,7 +491,7 @@ class LLM(BaseLLM):
             
         return {"model": self.model.replace("gemini/", ""), "contents": request["contents"], "generationConfig": request["generationConfig"]}
 
-    def _submit_batch_job(self, requests: List[Dict[str, Any]]) -> str:
+    def _submit_batch_job(self, requests: list[dict[str, Any]]) -> str:
         """Submit a batch job to Google GenAI API."""
         if not GOOGLE_GENAI_AVAILABLE:
             raise ImportError("google-generativeai is required for batch mode")
@@ -522,7 +517,7 @@ class LLM(BaseLLM):
         genai.configure(api_key=self.api_key)
         
         start_time = time.time()
-        while time.time() - start_time < self.batch_timeout:
+        while time.time() - start_time < (self.batch_timeout or 300):
             batch_job = genai.get_batch_job(job_name)
             
             if batch_job.state in ["JOB_STATE_SUCCEEDED", "JOB_STATE_FAILED", "JOB_STATE_CANCELLED"]:
@@ -532,7 +527,7 @@ class LLM(BaseLLM):
         
         raise TimeoutError(f"Batch job {job_name} did not complete within {self.batch_timeout} seconds")
 
-    def _retrieve_batch_results(self, job_name: str) -> List[str]:
+    def _retrieve_batch_results(self, job_name: str) -> list[str]:
         """Retrieve results from a completed batch job."""
         if not GOOGLE_GENAI_AVAILABLE:
             raise ImportError("google-generativeai is required for batch mode")
@@ -559,11 +554,11 @@ class LLM(BaseLLM):
 
     def _handle_streaming_response(
         self,
-        params: Dict[str, Any],
-        callbacks: Optional[List[Any]] = None,
-        available_functions: Optional[Dict[str, Any]] = None,
-        from_task: Optional[Any] = None,
-        from_agent: Optional[Any] = None,
+        params: dict[str, Any],
+        callbacks: list[Any] | None = None,
+        available_functions: dict[str, Any] | None = None,
+        from_task: Any | None = None,
+        from_agent: Any | None = None,
     ) -> str:
         """Handle a streaming response from the LLM.
 
@@ -587,7 +582,7 @@ class LLM(BaseLLM):
         usage_info = None
         tool_calls = None
 
-        accumulated_tool_args: DefaultDict[int, AccumulatedToolArgs] = defaultdict(
+        accumulated_tool_args: defaultdict[int, AccumulatedToolArgs] = defaultdict(
             AccumulatedToolArgs
         )
 
@@ -612,16 +607,16 @@ class LLM(BaseLLM):
                         choices = chunk["choices"]
                     elif hasattr(chunk, "choices"):
                         # Check if choices is not a type but an actual attribute with value
-                        if not isinstance(getattr(chunk, "choices"), type):
-                            choices = getattr(chunk, "choices")
+                        if not isinstance(chunk.choices, type):
+                            choices = chunk.choices
 
                     # Try to extract usage information if available
                     if isinstance(chunk, dict) and "usage" in chunk:
                         usage_info = chunk["usage"]
                     elif hasattr(chunk, "usage"):
                         # Check if usage is not a type but an actual attribute with value
-                        if not isinstance(getattr(chunk, "usage"), type):
-                            usage_info = getattr(chunk, "usage")
+                        if not isinstance(chunk.usage, type):
+                            usage_info = chunk.usage
 
                     if choices and len(choices) > 0:
                         choice = choices[0]
@@ -631,7 +626,7 @@ class LLM(BaseLLM):
                         if isinstance(choice, dict) and "delta" in choice:
                             delta = choice["delta"]
                         elif hasattr(choice, "delta"):
-                            delta = getattr(choice, "delta")
+                            delta = choice.delta
 
                         # Extract content from delta
                         if delta:
@@ -641,7 +636,7 @@ class LLM(BaseLLM):
                                     chunk_content = delta["content"]
                             # Handle object format
                             elif hasattr(delta, "content"):
-                                chunk_content = getattr(delta, "content")
+                                chunk_content = delta.content
 
                             # Handle case where content might be None or empty
                             if chunk_content is None and isinstance(delta, dict):
@@ -704,8 +699,8 @@ class LLM(BaseLLM):
                         if isinstance(last_chunk, dict) and "choices" in last_chunk:
                             choices = last_chunk["choices"]
                         elif hasattr(last_chunk, "choices"):
-                            if not isinstance(getattr(last_chunk, "choices"), type):
-                                choices = getattr(last_chunk, "choices")
+                            if not isinstance(last_chunk.choices, type):
+                                choices = last_chunk.choices
 
                         if choices and len(choices) > 0:
                             choice = choices[0]
@@ -715,14 +710,14 @@ class LLM(BaseLLM):
                             if isinstance(choice, dict) and "message" in choice:
                                 message = choice["message"]
                             elif hasattr(choice, "message"):
-                                message = getattr(choice, "message")
+                                message = choice.message
 
                             if message:
                                 content = None
                                 if isinstance(message, dict) and "content" in message:
                                     content = message["content"]
                                 elif hasattr(message, "content"):
-                                    content = getattr(message, "content")
+                                    content = message.content
 
                                 if content:
                                     full_response = content
@@ -749,8 +744,8 @@ class LLM(BaseLLM):
                     if isinstance(last_chunk, dict) and "choices" in last_chunk:
                         choices = last_chunk["choices"]
                     elif hasattr(last_chunk, "choices"):
-                        if not isinstance(getattr(last_chunk, "choices"), type):
-                            choices = getattr(last_chunk, "choices")
+                        if not isinstance(last_chunk.choices, type):
+                            choices = last_chunk.choices
 
                     if choices and len(choices) > 0:
                         choice = choices[0]
@@ -759,13 +754,13 @@ class LLM(BaseLLM):
                         if isinstance(choice, dict) and "message" in choice:
                             message = choice["message"]
                         elif hasattr(choice, "message"):
-                            message = getattr(choice, "message")
+                            message = choice.message
 
                         if message:
                             if isinstance(message, dict) and "tool_calls" in message:
                                 tool_calls = message["tool_calls"]
                             elif hasattr(message, "tool_calls"):
-                                tool_calls = getattr(message, "tool_calls")
+                                tool_calls = message.tool_calls
             except Exception as e:
                 logging.debug(f"Error checking for tool calls: {e}")
             # --- 8) If no tool calls or no available functions, return the text response directly
@@ -795,9 +790,9 @@ class LLM(BaseLLM):
             # decide whether to summarize the content or abort based on the respect_context_window flag.
             raise LLMContextLengthExceededException(str(e))
         except Exception as e:
-            logging.error(f"Error in streaming response: {str(e)}")
+            logging.error(f"Error in streaming response: {e!s}")
             if full_response.strip():
-                logging.warning(f"Returning partial response despite error: {str(e)}")
+                logging.warning(f"Returning partial response despite error: {e!s}")
                 self._handle_emit_call_events(full_response, LLMCallType.LLM_CALL, from_task, from_agent)
                 return full_response
 
@@ -807,15 +802,15 @@ class LLM(BaseLLM):
                 self,
                 event=LLMCallFailedEvent(error=str(e), from_task=from_task, from_agent=from_agent),
             )
-            raise Exception(f"Failed to get streaming response: {str(e)}")
+            raise Exception(f"Failed to get streaming response: {e!s}")
 
     def _handle_streaming_tool_calls(
         self,
-        tool_calls: List[ChatCompletionDeltaToolCall],
-        accumulated_tool_args: DefaultDict[int, AccumulatedToolArgs],
-        available_functions: Optional[Dict[str, Any]] = None,
-        from_task: Optional[Any] = None,
-        from_agent: Optional[Any] = None,
+        tool_calls: list[ChatCompletionDeltaToolCall],
+        accumulated_tool_args: defaultdict[int, AccumulatedToolArgs],
+        available_functions: dict[str, Any] | None = None,
+        from_task: Any | None = None,
+        from_agent: Any | None = None,
     ) -> None | str:
         for tool_call in tool_calls:
             current_tool_accumulator = accumulated_tool_args[tool_call.index]
@@ -856,9 +851,9 @@ class LLM(BaseLLM):
 
     def _handle_streaming_callbacks(
         self,
-        callbacks: Optional[List[Any]],
-        usage_info: Optional[Dict[str, Any]],
-        last_chunk: Optional[Any],
+        callbacks: list[Any] | None,
+        usage_info: dict[str, Any] | None,
+        last_chunk: Any | None,
     ) -> None:
         """Handle callbacks with usage info for streaming responses.
 
@@ -882,9 +877,9 @@ class LLM(BaseLLM):
                                     usage_info = last_chunk["usage"]
                                 elif hasattr(last_chunk, "usage"):
                                     if not isinstance(
-                                        getattr(last_chunk, "usage"), type
+                                        last_chunk.usage, type
                                     ):
-                                        usage_info = getattr(last_chunk, "usage")
+                                        usage_info = last_chunk.usage
                         except Exception as e:
                             logging.debug(f"Error extracting usage info: {e}")
 
@@ -898,11 +893,11 @@ class LLM(BaseLLM):
 
     def _handle_non_streaming_response(
         self,
-        params: Dict[str, Any],
-        callbacks: Optional[List[Any]] = None,
-        available_functions: Optional[Dict[str, Any]] = None,
-        from_task: Optional[Any] = None,
-        from_agent: Optional[Any] = None,
+        params: dict[str, Any],
+        callbacks: list[Any] | None = None,
+        available_functions: dict[str, Any] | None = None,
+        from_task: Any | None = None,
+        from_agent: Any | None = None,
     ) -> str:
         """Handle a non-streaming response from the LLM.
 
@@ -966,9 +961,9 @@ class LLM(BaseLLM):
 
     def _handle_tool_call(
         self,
-        tool_calls: List[Any],
-        available_functions: Optional[Dict[str, Any]] = None,
-    ) -> Optional[str]:
+        tool_calls: list[Any],
+        available_functions: dict[str, Any] | None = None,
+    ) -> str | None:
         """Handle a tool call from the LLM.
 
         Args:
@@ -1028,27 +1023,27 @@ class LLM(BaseLLM):
                 assert hasattr(crewai_event_bus, "emit")
                 crewai_event_bus.emit(
                     self,
-                    event=LLMCallFailedEvent(error=f"Tool execution error: {str(e)}"),
+                    event=LLMCallFailedEvent(error=f"Tool execution error: {e!s}"),
                 )
                 crewai_event_bus.emit(
                     self,
                     event=ToolUsageErrorEvent(
                         tool_name=function_name,
                         tool_args=function_args,
-                        error=f"Tool execution error: {str(e)}"
+                        error=f"Tool execution error: {e!s}"
                     ),
                 )
         return None
 
     def call(
         self,
-        messages: Union[str, List[Dict[str, str]]],
-        tools: Optional[List[dict]] = None,
-        callbacks: Optional[List[Any]] = None,
-        available_functions: Optional[Dict[str, Any]] = None,
-        from_task: Optional[Any] = None,
-        from_agent: Optional[Any] = None,
-    ) -> Union[str, Any]:
+        messages: str | list[dict[str, str]],
+        tools: list[dict] | None = None,
+        callbacks: list[Any] | None = None,
+        available_functions: dict[str, Any] | None = None,
+        from_task: Any | None = None,
+        from_agent: Any | None = None,
+    ) -> str | Any:
         """High-level LLM call method.
 
         Args:
@@ -1136,17 +1131,17 @@ class LLM(BaseLLM):
                     self,
                     event=LLMCallFailedEvent(error=str(e), from_task=from_task, from_agent=from_agent),
                 )
-                logging.error(f"LiteLLM call failed: {str(e)}")
+                logging.error(f"LiteLLM call failed: {e!s}")
                 raise
 
     def _handle_batch_request(
         self,
-        messages: List[Dict[str, str]],
-        tools: Optional[List[dict]] = None,
-        callbacks: Optional[List[Any]] = None,
-        available_functions: Optional[Dict[str, Any]] = None,
-        from_task: Optional[Any] = None,
-        from_agent: Optional[Any] = None,
+        messages: list[dict[str, str]],
+        tools: list[dict] | None = None,
+        callbacks: list[Any] | None = None,
+        available_functions: dict[str, Any] | None = None,
+        from_task: Any | None = None,
+        from_agent: Any | None = None,
     ) -> str:
         """Handle batch mode request for Gemini models."""
         if not self._is_gemini_model():
@@ -1207,10 +1202,10 @@ class LLM(BaseLLM):
                     from_agent=from_agent,
                 ),
             )
-            logging.error(f"Batch request failed: {str(e)}")
+            logging.error(f"Batch request failed: {e!s}")
             raise
 
-    def _handle_emit_call_events(self, response: Any, call_type: LLMCallType, from_task: Optional[Any] = None, from_agent: Optional[Any] = None):
+    def _handle_emit_call_events(self, response: Any, call_type: LLMCallType, from_task: Any | None = None, from_agent: Any | None = None):
         """Handle the events for the LLM call.
 
         Args:
@@ -1224,8 +1219,8 @@ class LLM(BaseLLM):
         )
 
     def _format_messages_for_provider(
-        self, messages: List[Dict[str, str]]
-    ) -> List[Dict[str, str]]:
+        self, messages: list[dict[str, str]]
+    ) -> list[dict[str, str]]:
         """Format messages according to provider requirements.
 
         Args:
@@ -1284,7 +1279,7 @@ class LLM(BaseLLM):
 
         return messages
 
-    def _get_custom_llm_provider(self) -> Optional[str]:
+    def _get_custom_llm_provider(self) -> str | None:
         """
         Derives the custom_llm_provider from the model string.
         - For example, if the model is "openrouter/deepseek/deepseek-chat", returns "openrouter".
@@ -1321,7 +1316,7 @@ class LLM(BaseLLM):
                 self.model, custom_llm_provider=provider
             )
         except Exception as e:
-            logging.error(f"Failed to check function calling support: {str(e)}")
+            logging.error(f"Failed to check function calling support: {e!s}")
             return False
 
     def supports_stop_words(self) -> bool:
@@ -1329,7 +1324,7 @@ class LLM(BaseLLM):
             params = get_supported_openai_params(model=self.model)
             return params is not None and "stop" in params
         except Exception as e:
-            logging.error(f"Failed to get supported params: {str(e)}")
+            logging.error(f"Failed to get supported params: {e!s}")
             return False
 
     def get_context_window_size(self) -> int:
@@ -1361,7 +1356,7 @@ class LLM(BaseLLM):
                 self.context_window_size = int(value * CONTEXT_WINDOW_USAGE_RATIO)
         return self.context_window_size
 
-    def set_callbacks(self, callbacks: List[Any]):
+    def set_callbacks(self, callbacks: list[Any]):
         """
         Attempt to keep a single set of callbacks in litellm by removing old
         duplicates and adding new ones.
@@ -1398,19 +1393,19 @@ class LLM(BaseLLM):
         `litellm.failure_callback` to ["langfuse"].
         """
         with suppress_warnings():
-            success_callbacks_str = os.environ.get("LITELLM_SUCCESS_CALLBACKS", "")
-            success_callbacks = []
+            success_callbacks_str: str = os.environ.get("LITELLM_SUCCESS_CALLBACKS", "")
+            success_callbacks: list[str] = []
             if success_callbacks_str:
                 success_callbacks = [
                     cb.strip() for cb in success_callbacks_str.split(",") if cb.strip()
                 ]
 
-            failure_callbacks_str = os.environ.get("LITELLM_FAILURE_CALLBACKS", "")
-            failure_callbacks = []
+            failure_callbacks_str: str = os.environ.get("LITELLM_FAILURE_CALLBACKS", "")
+            failure_callbacks: list[str] = []
             if failure_callbacks_str:
                 failure_callbacks = [
                     cb.strip() for cb in failure_callbacks_str.split(",") if cb.strip()
                 ]
 
-                litellm.success_callback = success_callbacks
-                litellm.failure_callback = failure_callbacks
+                litellm.success_callback = success_callbacks  # type: ignore[assignment]
+                litellm.failure_callback = failure_callbacks  # type: ignore[assignment]
