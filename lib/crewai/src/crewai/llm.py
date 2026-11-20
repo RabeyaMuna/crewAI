@@ -399,8 +399,13 @@ class LLM(BaseLLM):
             logger.error("LiteLLM is not available, falling back to LiteLLM")
             raise ImportError("Fallback to LiteLLM is not available") from None
 
+        # For LiteLLM, prepend provider if model doesn't have a '/' prefix
+        litellm_model = model
+        if "/" not in model and provider:
+            litellm_model = f"{provider}/{model}"
+
         instance = object.__new__(cls)
-        super(LLM, instance).__init__(model=model, is_litellm=True, **kwargs)
+        super(LLM, instance).__init__(model=litellm_model, is_litellm=True, **kwargs)
         instance.is_litellm = True
         return instance
 
