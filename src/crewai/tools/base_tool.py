@@ -1,7 +1,8 @@
 import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from inspect import signature
-from typing import Any, Callable, Type, get_args, get_origin
+from typing import Any, get_args, get_origin
 
 from pydantic import (
     BaseModel,
@@ -14,11 +15,12 @@ from pydantic import BaseModel as PydanticBaseModel
 
 from crewai.tools.structured_tool import CrewStructuredTool
 
+
 class EnvVar(BaseModel):
     name: str
     description: str
     required: bool = True
-    default: Optional[str] = None
+    default: str | None = None
 
 class BaseTool(BaseModel, ABC):
     class _ArgsSchemaPlaceholder(PydanticBaseModel):
@@ -30,9 +32,9 @@ class BaseTool(BaseModel, ABC):
     """The unique name of the tool that clearly communicates its purpose."""
     description: str
     """Used to tell the model how/when/why to use the tool."""
-    env_vars: List[EnvVar] = []
+    env_vars: list[EnvVar] = []
     """List of environment variables used by the tool."""
-    args_schema: Type[PydanticBaseModel] = Field(
+    args_schema: type[PydanticBaseModel] = Field(
         default_factory=_ArgsSchemaPlaceholder, validate_default=True
     )
     """The schema for the arguments that the tool accepts."""
@@ -50,8 +52,8 @@ class BaseTool(BaseModel, ABC):
     @field_validator("args_schema", mode="before")
     @classmethod
     def _default_args_schema(
-        cls, v: Type[PydanticBaseModel]
-    ) -> Type[PydanticBaseModel]:
+        cls, v: type[PydanticBaseModel]
+    ) -> type[PydanticBaseModel]:
         if not isinstance(v, cls._ArgsSchemaPlaceholder):
             return v
 
