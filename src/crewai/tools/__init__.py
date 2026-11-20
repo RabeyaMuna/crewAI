@@ -1,1 +1,1 @@
-from .base_tool import BaseTool, tool
+from .base_tool import BaseTool as BaseTool, tool as tool

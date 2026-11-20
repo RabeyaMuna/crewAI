@@ -1,5 +1,4 @@
 import json
-import os
 from typing import Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
 
@@ -7,6 +6,7 @@ import pytest
 from pydantic import BaseModel
 
 from crewai.llm import LLM
+from enum import Enum
 from crewai.utilities.converter import (
     Converter,
     ConverterError,
@@ -431,7 +431,7 @@ def test_converter_error_handling():
     )
 
     with pytest.raises(ConverterError) as exc_info:
-        output = converter.to_pydantic()
+        converter.to_pydantic()
 
     assert "Failed to convert text into a Pydantic model" in str(exc_info.value)
 
@@ -516,7 +516,6 @@ def test_converter_with_list_field():
 
 
 # Tests for enums
-from enum import Enum
 
 
 def test_converter_with_enum():
@@ -565,7 +564,7 @@ def test_converter_with_ambiguous_input():
     )
 
     with pytest.raises(ConverterError) as exc_info:
-        output = converter.to_pydantic()
+        converter.to_pydantic()
 
     assert "failed to convert text into a pydantic model" in str(exc_info.value).lower()
 
