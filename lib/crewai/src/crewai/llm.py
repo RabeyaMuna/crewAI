@@ -362,6 +362,7 @@ class LLM(BaseLLM):
                 "gemini": "gemini",
                 "bedrock": "bedrock",
                 "aws": "bedrock",
+                "o1": "openai",
             }
 
             canonical_provider = provider_mapping.get(prefix.lower())
