@@ -14,6 +14,8 @@ from pydantic import BaseModel as PydanticBaseModel
 
 from crewai.tools.structured_tool import CrewStructuredTool
 
+from typing import Optional
+
 class EnvVar(BaseModel):
     name: str
     description: str
