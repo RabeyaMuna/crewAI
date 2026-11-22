@@ -1,9 +1,6 @@
-import os
-from datetime import datetime
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
-from pydantic import Field
 
 from crewai.agent import Agent
 from crewai.agents.crew_agent_executor import CrewAgentExecutor
@@ -38,7 +35,6 @@ from crewai.utilities.events.llm_events import (
     LLMCallCompletedEvent,
     LLMCallFailedEvent,
     LLMCallStartedEvent,
-    LLMCallType,
     LLMStreamChunkEvent,
 )
 from crewai.utilities.events.task_events import (
