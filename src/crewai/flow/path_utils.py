@@ -5,12 +5,10 @@ This module provides utilities for secure path handling to prevent directory
 traversal attacks and ensure paths remain within allowed boundaries.
 """
 
-import os
 from pathlib import Path
-from typing import List, Union
 
 
-def safe_path_join(*parts: str, root: Union[str, Path, None] = None) -> str:
+def safe_path_join(*parts: str, root: str | Path | None = None) -> str:
     """
     Safely join path components and ensure the result is within allowed boundaries.
 
@@ -58,10 +56,10 @@ def safe_path_join(*parts: str, root: Union[str, Path, None] = None) -> str:
     except Exception as e:
         if isinstance(e, ValueError):
             raise
-        raise ValueError(f"Invalid path components: {str(e)}")
+        raise ValueError(f"Invalid path components: {e!s}")
 
 
-def validate_path_exists(path: Union[str, Path], file_type: str = "file") -> str:
+def validate_path_exists(path: str | Path, file_type: str = "file") -> str:
     """
     Validate that a path exists and is of the expected type.
 
@@ -98,10 +96,10 @@ def validate_path_exists(path: Union[str, Path], file_type: str = "file") -> str
     except Exception as e:
         if isinstance(e, ValueError):
             raise
-        raise ValueError(f"Invalid path: {str(e)}")
+        raise ValueError(f"Invalid path: {e!s}")
 
 
-def list_files(directory: Union[str, Path], pattern: str = "*") -> List[str]:
+def list_files(directory: str | Path, pattern: str = "*") -> list[str]:
     """
     Safely list files in a directory matching a pattern.
 
@@ -132,4 +130,4 @@ def list_files(directory: Union[str, Path], pattern: str = "*") -> List[str]:
     except Exception as e:
         if isinstance(e, ValueError):
             raise
-        raise ValueError(f"Error listing files: {str(e)}")
+        raise ValueError(f"Error listing files: {e!s}")
