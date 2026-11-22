@@ -347,7 +347,7 @@ class Task(BaseModel):
     def execute_sync(
         self,
         agent: Optional[BaseAgent] = None,
-        context: Optional[str] = None,
+        context: Optional[Union[str, Dict]] = None,
         tools: Optional[List[BaseTool]] = None,
     ) -> TaskOutput:
         """Execute the task synchronously."""
